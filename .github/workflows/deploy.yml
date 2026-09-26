@@ -1,19 +1,15 @@
-name: Deploy to Cloudflare Pages
+name: Deploy
 
 on:
   push:
     branches:
       - main
 
-permissions:
-  contents: read
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
