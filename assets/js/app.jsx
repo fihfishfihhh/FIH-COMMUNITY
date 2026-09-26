@@ -2291,3 +2291,22 @@ function App(){
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+/* --- EXPOSE ALL UI GLOBALS FOR OTHER MODULES --- */
+Object.assign(window, {
+  ProfileCard: typeof ProfileCard !== "undefined" ? ProfileCard : null,
+  Modal: typeof Modal !== "undefined" ? Modal : null,
+  EmptyState: typeof EmptyState !== "undefined" ? EmptyState : null,
+  Avatar: typeof Avatar !== "undefined" ? Avatar : null,
+  Button: typeof Button !== "undefined" ? Button : null,
+  Badge: typeof Badge !== "undefined" ? Badge : null,
+  IconHome: typeof IconHome !== "undefined" ? IconHome : null,
+  IconDiscord: typeof IconDiscord !== "undefined" ? IconDiscord : null,
+  IconUpload: typeof IconUpload !== "undefined" ? IconUpload : null,
+  IconAward: typeof IconAward !== "undefined" ? IconAward : null,
+  IconUsers: typeof IconUsers !== "undefined" ? IconUsers : null,
+  IconHelper: typeof IconHelper !== "undefined" ? IconHelper : null,
+  IconFish: typeof IconFish !== "undefined" ? IconFish : null,
+  IconLayers: typeof IconLayers !== "undefined" ? IconLayers : null,
+  IconCalendar: typeof IconCalendar !== "undefined" ? IconCalendar : null,
+  IconPalette: typeof IconPalette !== "undefined" ? IconPalette : null,
+});
