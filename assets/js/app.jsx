@@ -2242,9 +2242,9 @@ function App(){
       </div>
       <BottomBar lang={lang} setLang={setLang} session={session} bgId={equippedBgId} setBgId={(id)=>session && updateProfile(session,{equippedSiteBg:id})} unlockedBgIds={unlockedBgIds} />
 
-      {showLogin && <LoginModal users={users} onClose={()=>setShowLogin(false)} onSwitch={()=>{ setShowLogin(false); setShowRegister(true); }} onLogin={handleLogin} />}
-      {showRegister && <RegisterModal users={users} onClose={()=>setShowRegister(false)} onSwitch={()=>{ setShowRegister(false); setShowLogin(true); }} onRegister={handleRegister} />}
-      {showAdmin && <AdminPanel onClose={()=>setShowAdmin(false)} users={users} session={session} role={role} auditLog={auditLog} onBan={banUserGlobal} onUnban={unbanUserGlobal} onRoleChange={changeUserRole} onExport={handleExport} onImportFile={handleImportFile} announcement={announcement} onSetAnnouncement={setAnnouncementText} maintenanceOn={maintenanceOn} onToggleMaintenance={toggleMaintenance} />}
+      {showLogin && <window.LoginModal users={users} onClose={()=>setShowLogin(false)} onSwitch={()=>{ setShowLogin(false); setShowRegister(true); }} onLogin={handleLogin} />}
+      {showRegister && <window.RegisterModal users={users} onClose={()=>setShowRegister(false)} onSwitch={()=>{ setShowRegister(false); setShowLogin(true); }} onRegister={handleRegister} />}
+      {showAdmin && <window.AdminPanel onClose={()=>setShowAdmin(false)} users={users} session={session} role={role} auditLog={auditLog} onBan={banUserGlobal} onUnban={unbanUserGlobal} onRoleChange={changeUserRole} onExport={handleExport} onImportFile={handleImportFile} announcement={announcement} onSetAnnouncement={setAnnouncementText} maintenanceOn={maintenanceOn} onToggleMaintenance={toggleMaintenance} />}
       {profileTarget && <ProfileModal username={profileTarget} ctx={ctx} onClose={()=>setProfileTarget(null)} />}
       {levelDetailLevel && <LevelDetailModal level={levelDetailLevel} scope={levelDetail.scope} sublistId={levelDetail.sublistId} ctx={ctx} onClose={()=>setLevelDetail(null)} />}
       {showMandatoryStats && currentUser && (

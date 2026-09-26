@@ -1,4 +1,9 @@
 /* Jery's role-gated administration surface is isolated from app orchestration. */
+window.AdminPanel = function AdminPanel({ onClose, users, session, role, auditLog, onBan, onUnban, onRoleChange, onExport, onImportFile, announcement, onSetAnnouncement, maintenanceOn, onToggleMaintenance }){
+  const [tab, setTab] = React.useState("moderation");
+  const [announceDraft, setAnnounceDraft] = React.useState(announcement ? announcement.text : "");
+  const isSuper = role==="Super Admin";
+  const fileRef = React.useRef(null);
 function AdminPanel({ onClose, users, session, role, auditLog, onBan, onUnban, onRoleChange, onExport, onImportFile, announcement, onSetAnnouncement, maintenanceOn, onToggleMaintenance }){
   const [tab, setTab] = useState("moderation");
   const [announceDraft, setAnnounceDraft] = useState(announcement ? announcement.text : "");
@@ -9,7 +14,7 @@ function AdminPanel({ onClose, users, session, role, auditLog, onBan, onUnban, o
     <Modal title="Admin panel" onClose={onClose} wide>
       <div className="flex gap-1.5 mb-5 flex-wrap">
         {tabs.map(t=>(
-          <button key={t.key} onClick={()=>setTab(t.key)} className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: tab===t.key ? "var(--ink)" : "var(--bg-soft)", color: tab===t.key ? "var(--bg)" : "var(--ink-soft)" }}>{t.label}</button>
+          <button key={t.key} onClick={()=>setTab(t.key)} className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: tab===t.key ? "var(--ink)" : "var(--bg-soft)", color: tab===t.key ? "var(--bg)" : "var(--ink)" }}>{t.label}</button>
         ))}
       </div>
       {tab==="moderation" && ( !isSuper ? <EmptyState text="Only Super Admins can manage bans." /> : (
@@ -36,7 +41,7 @@ function AdminPanel({ onClose, users, session, role, auditLog, onBan, onUnban, o
             <div key={name} className="flex items-center gap-3 rounded-lg px-3 py-2" style={{ background:"var(--bg-soft)" }}>
               <Avatar name={name} size={28} src={users[name].avatar}/>
               <div className="flex-1 text-sm font-semibold">{users[name].displayName||name}</div>
-              <select value={users[name].role} onChange={e=>onRoleChange(name, e.target.value)} className="text-xs rounded-md px-2 py-1.5 bg-transparent" style={{ border:"1px solid var(--line-strong)" }}>
+              <select value={users[name].role} onChange={e=>onRoleChange(name, e.target.value)} className="text-xs rounded-md px-2 py-1.5 bg-transparent" style={{ border:"1px solid var(--line-stroke)", color:"var(--ink)" }}>
                 {ROLE_LIST.map(r=><option key={r} value={r}>{r}</option>)}
               </select>
             </div>
@@ -46,7 +51,7 @@ function AdminPanel({ onClose, users, session, role, auditLog, onBan, onUnban, o
       {tab==="announcement" && ( !isSuper ? <EmptyState text="Only Super Admins can post announcements." /> : (
         <div className="space-y-3">
           <p className="text-sm" style={{ color:"var(--ink-soft)" }}>Broadcast a dismissible banner to every visitor.</p>
-          <textarea rows="3" maxLength="200" className={inputClass} style={inputStyle} value={announceDraft} onChange={e=>setAnnounceDraft(e.target.value)} placeholder="e.g. FIH Megacollab #2 submissions are now open!" />
+          <textarea rows="3" maxLength="200" className={inputClass} style={inputStyle} value={announceDraft} onChange={e=>setAnnounceDraft(e.target.value)} placeholder="e.g. FIH Megacollab #2 submissions close Friday."/>
           <div className="flex gap-2">
             <Button variant="primary" onClick={()=>onSetAnnouncement(announceDraft)}>Post announcement</Button>
             <Button variant="outline" onClick={()=>{ setAnnounceDraft(""); onSetAnnouncement(""); }}>Clear</Button>
@@ -93,13 +98,13 @@ function ProfileCard({ session, user, collapsed, points, onOpenSelf, avatarSrc, 
   }
   const pct = Math.min(100, Math.round(((points||0) % 500)/500*100));
   return (
-    <button onClick={onOpenSelf} className={"flex items-center gap-2.5 mx-3 mb-4 rounded-xl p-2.5 text-left w-[calc(100%-1.5rem)] "+(collapsed?"justify-center":"")} style={{ background:"var(--sidebar-active)" }}>
+    <button onClick={onOpenSelf} className={"flex items-center gap-2.5 mx-3 mb-4 rounded-xl p-2.5 text-left w-[calc(100%-1.5rem)] "+(collapsed?"justify-center":"")} style={{ background:"var(--sidebar-active)", cursor:"pointer" }}>
       <AvatarFramed name={session} size={collapsed?32:38} src={avatarSrc} frameId={frameId} />
       {!collapsed && (
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold truncate" style={{ color:"var(--sidebar-ink)" }}>{displayName}</div>
           <div className="text-[11px] truncate mb-1" style={{ color:"var(--sidebar-ink-soft)" }}>{user.title}</div>
-          <div className="h-1 rounded-full overflow-hidden" style={{ background:"rgba(255,255,255,0.08)" }}><div className="h-full prog-fill" style={{ width:pct+"%", background:"var(--accent)" }} /></div>
+          <div className="h-1 rounded-full overflow-hidden" style={{ background:"rgba(255,255,255,0.08)" }}><div className="h-full prog-fill" style={{ width:pct+"%", background:"var(--accent)" }}></div></div>
           <div className="text-[10px] mt-1" style={{ color:"var(--sidebar-ink-soft)" }}>{(points||0).toLocaleString()} pts</div>
         </div>
       )}
