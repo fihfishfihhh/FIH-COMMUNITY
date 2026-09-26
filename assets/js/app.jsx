@@ -1,95 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FIH Community</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-<style>
-  :root{
-    --bg:#ffffff; --bg-soft:#f4f4f2; --bg-card:#ffffff; --ink:#15161b; --ink-soft:#6b6d76; --ink-faint:#a0a1a8;
-    --line:#e6e6e2; --line-strong:#d7d7d1; --accent:#4634ff; --accent-soft:#eeecff;
-    --sidebar-bg:#0c0c0f; --sidebar-ink:#f2f2f0; --sidebar-ink-soft:#84858d; --sidebar-active:#1b1b21;
-    --success:#1f9d6f; --success-soft:#e6f6ef; --warn:#c9821c; --warn-soft:#fbf0dd;
-    --danger:#d13a52; --danger-soft:#fbe8eb; --extreme:#7a3cff; --extreme-soft:#f1ebff;
-    --glass-bg:rgba(255,255,255,0.7); --glass-bg-strong:rgba(255,255,255,0.88);
-  }
-  :root[data-theme="dark"]{
-    --bg:#0f0f12; --bg-soft:#17171b; --bg-card:#151519; --ink:#f2f2f0; --ink-soft:#a4a5ad;
-    --ink-faint:#6c6d75; --line:#26262c; --line-strong:#323238; --accent-soft:#1c1830;
-    --success-soft:#0f271d; --warn-soft:#2a2013; --danger-soft:#2b161a; --extreme-soft:#211a33;
-    --glass-bg:rgba(15,15,18,0.7); --glass-bg-strong:rgba(21,21,25,0.88);
-  }
-  *{ box-sizing:border-box; }
-  html,body{ margin:0; padding:0; background:var(--bg); }
-  body{ font-family:'Inter',sans-serif; color:var(--ink); -webkit-font-smoothing:antialiased; }
-  .font-display{ font-family:'Space Grotesk',sans-serif; }
-  ::-webkit-scrollbar{ width:10px; height:10px; }
-  ::-webkit-scrollbar-track{ background:transparent; }
-  ::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:8px; }
-  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-  @media (prefers-reduced-motion: reduce){ *:not(.float-icon){ animation-duration:0.01ms !important; transition-duration:0.01ms !important; } }
-  button{ transition: transform .12s ease, background-color .15s ease, color .15s ease, border-color .15s ease, box-shadow .15s ease; }
-  button:active{ transform: scale(0.97); }
-  .lift-hover{ transition: transform .15s ease, box-shadow .15s ease; }
-  .lift-hover:hover{ transform: translateY(-2px); box-shadow: 0 10px 24px -10px rgba(15,15,20,0.18), 0 0 0 3px var(--accent-soft); }
-  @keyframes fadeSlideUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
-  .animate-fadein{ animation: fadeSlideUp .48s cubic-bezier(.16,1,.3,1) both; }
-  @keyframes modalPop{ from{opacity:0; transform:scale(.96) translateY(8px);} to{opacity:1; transform:scale(1) translateY(0);} }
-  .modal-pop{ animation: modalPop .22s cubic-bezier(.16,1,.3,1) both; }
-  @keyframes pulseDot{ 0%,100%{opacity:.4;} 50%{opacity:1;} }
-  .pulse-dot{ animation: pulseDot 1.4s ease-in-out infinite; }
-  @keyframes bannerDrop{ from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:translateY(0);} }
-  .banner-drop{ animation: bannerDrop .25s ease both; }
-  @keyframes iconSpin{ from{ transform:rotate(-30deg) scale(.75); opacity:.25; } to{ transform:rotate(0deg) scale(1); opacity:1; } }
-  .icon-spin{ animation: iconSpin .5s cubic-bezier(.2,.8,.2,1) both; }
-  .aesthetic-bg{
-    background:
-      radial-gradient(circle at 12% 8%, rgba(70,52,255,0.10), transparent 34%),
-      radial-gradient(circle at 88% 14%, rgba(201,130,28,0.09), transparent 32%),
-      radial-gradient(circle at 75% 92%, rgba(31,157,111,0.09), transparent 36%),
-      radial-gradient(circle at 25% 85%, rgba(122,60,255,0.07), transparent 34%),
-      var(--bg);
-  }
-  .sitebg-aurora{ background: radial-gradient(circle at 15% 15%, rgba(70,52,255,0.16), transparent 38%), radial-gradient(circle at 85% 25%, rgba(0,224,198,0.14), transparent 36%), radial-gradient(circle at 70% 90%, rgba(201,130,28,0.12), transparent 40%), var(--bg); }
-  .sitebg-blossom{ background: radial-gradient(circle at 20% 18%, rgba(150,150,255,0.14), transparent 40%), radial-gradient(circle at 82% 70%, rgba(255,255,255,0.16), transparent 42%), radial-gradient(circle at 50% 95%, rgba(120,110,220,0.10), transparent 38%), var(--bg); }
-  .sitebg-waterlily{ background: radial-gradient(circle at 78% 28%, rgba(255,220,140,0.16), transparent 42%), radial-gradient(circle at 18% 80%, rgba(60,190,160,0.14), transparent 42%), var(--bg); }
-  .sitebg-autumn{ background: radial-gradient(circle at 65% 32%, rgba(255,180,90,0.18), transparent 42%), radial-gradient(circle at 15% 85%, rgba(180,90,30,0.13), transparent 42%), var(--bg); }
-  @keyframes ringGlow{ 0%,100%{ filter:brightness(1); } 50%{ filter:brightness(1.18); } }
-  .frame-rose{ background: linear-gradient(135deg,#ffd1e8,#c9a0ff); padding:3px; border-radius:9999px; display:inline-flex; animation: ringGlow 2.6s ease-in-out infinite; }
-  .frame-neon{ background: linear-gradient(135deg,#4634ff,#00e0c6); padding:3px; border-radius:9999px; display:inline-flex; box-shadow:0 0 14px rgba(70,52,255,.45); animation: ringGlow 2.2s ease-in-out infinite; }
-  .frame-gold{ background: linear-gradient(135deg,#f7d774,#c9821c); padding:3px; border-radius:9999px; display:inline-flex; box-shadow:0 0 16px rgba(201,130,28,.45); animation: ringGlow 2.4s ease-in-out infinite; }
-  .banner-blossom{ background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.22), transparent 42%), linear-gradient(135deg,#0d1220,#1b2038 60%, #2a2f52); }
-  .banner-waterlily{ background: radial-gradient(circle at 70% 30%, rgba(255,230,150,.28), transparent 46%), linear-gradient(135deg,#04120f,#0c2c26 55%,#123b33); }
-  .banner-autumn{ background: radial-gradient(circle at 60% 40%, rgba(255,200,120,.32), transparent 46%), linear-gradient(135deg,#231205,#3c220a 55%,#54300f); }
-  @keyframes navGlow{ 0%,100%{ box-shadow:0 0 0 1px rgba(70,52,255,.0), 0 0 0px rgba(70,52,255,0); } 50%{ box-shadow:0 0 0 1px rgba(70,52,255,.35), 0 0 14px rgba(70,52,255,.22); } }
-  .nav-active-glow{ animation: navGlow 2.6s ease-in-out infinite; }
-  .btn-glow-primary:hover{ box-shadow: 0 0 0 3px var(--accent-soft), 0 10px 22px -8px rgba(70,52,255,.45); }
-  @keyframes staggerIn{ from{ opacity:0; transform:translateY(14px) scale(.97); filter:blur(3px); } to{ opacity:1; transform:translateY(0) scale(1); filter:blur(0); } }
-  .stagger-item{ opacity:0; animation: staggerIn .55s cubic-bezier(.16,1,.3,1) both; }
-  .ripple-el{ position:absolute; border-radius:50%; transform:scale(0); animation: rippleAnim .6s ease-out; pointer-events:none; }
-  @keyframes rippleAnim{ to{ transform:scale(2.4); opacity:0; } }
-  .prog-fill{ transition: width .7s cubic-bezier(.16,1,.3,1); }
-  .aesthetic-bg, [class*="sitebg-"]{ background-size:100% 100%; }
-  .confetti-piece{ position:absolute; width:8px; height:8px; border-radius:2px; opacity:0; animation-name: confettiPop; animation-timing-function: cubic-bezier(.2,.8,.2,1); animation-fill-mode: forwards; }
-  @keyframes confettiPop{ 0%{ opacity:1; transform:translate(0,0) rotate(0deg) scale(1); } 100%{ opacity:0; transform:translate(var(--dx,0px), 240px) rotate(var(--rot,180deg)) scale(.5); } }
-  @keyframes toastPop{ 0%{ opacity:0; transform:translateX(16px) scale(.9); } 60%{ opacity:1; transform:translateX(-3px) scale(1.03); } 100%{ opacity:1; transform:translateX(0) scale(1); } }
-  .toast-in{ animation: toastPop .32s cubic-bezier(.34,1.56,.64,1) both; }
-  @keyframes countPulse{ 0%{ transform:scale(1); } 40%{ transform:scale(1.12); } 100%{ transform:scale(1); } }
-  .count-pulse{ display:inline-block; animation: countPulse .4s ease; }
-  @keyframes floatDrift{ 0%{ transform:translateY(0) rotate(0deg); } 50%{ transform:translateY(-26px) rotate(8deg); } 100%{ transform:translateY(0) rotate(0deg); } }
-  .float-icon{ position:absolute; animation-name: floatDrift; animation-timing-function: ease-in-out; animation-iteration-count: infinite; color:var(--ink-faint); }
-</style>
-</head>
-<body>
-<div id="root"></div>
-<script type="text/babel" data-presets="react">
 const { useState, useEffect, useMemo, useRef } = React;
 
 /* ---------------------------------- storage / utils ---------------------------------- */
@@ -234,7 +142,7 @@ function makeUser(over){
     discordTag:"", avatar:null, avatarChanges:0, bio:"", createdAt: Date.now()-30*86400000,
     displayName:"", pointsAdjustment:0, collabPoints:0, equippedFrame:"none", equippedBanner:"none", equippedSiteBg:"default",
     gdUsername:"", stars:0, moons:0, demonsBeaten:0, hardestDemon:"", creatorPointsStat:0,
-    earlyMember:false, lastStatUpdate:null,
+    earlyMember:false, email:"", emailVerified:true, lastStatUpdate:null,
     ...over,
   };
 }
@@ -1459,57 +1367,6 @@ function DecoratedSharePage({ session, ctx, posts, onAddPost }){
 }
 
 /* ---------------------------------- auth / stats form ---------------------------------- */
-function LoginModal({ onClose, onSwitch, users, onLogin }){
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  function submit(e){
-    e.preventDefault();
-    const u = users[username];
-    if(!u || u.password !== password){ setError("Incorrect username or password."); return; }
-    if(u.banned){ setError("This account has been banned."+(u.banReason?(" Reason: "+u.banReason):"")); return; }
-    onLogin(username);
-  }
-  return (
-    <Modal title="Log in" onClose={onClose}>
-      <form onSubmit={submit}>
-        <Field label="Username"><input required autoFocus className={inputClass} style={inputStyle} value={username} onChange={e=>setUsername(e.target.value)} /></Field>
-        <Field label="Password"><input required type="password" className={inputClass} style={inputStyle} value={password} onChange={e=>setPassword(e.target.value)} /></Field>
-        {error && <div className="text-xs font-semibold mb-3" style={{ color:"var(--danger)" }}>{error}</div>}
-        <Button type="submit" variant="primary" className="w-full">Log in</Button>
-        <p className="text-xs text-center mt-4" style={{ color:"var(--ink-soft)" }}>No account? <button type="button" onClick={onSwitch} className="font-semibold" style={{ color:"var(--accent)" }}>Register</button></p>
-        <p className="text-[11px] text-center mt-3" style={{ color:"var(--ink-faint)" }}>Demo login only. Try Jery / jery2026 (Super Admin) or Star / star2026 (Mod). Early members: fih2026.</p>
-      </form>
-    </Modal>
-  );
-}
-function RegisterModal({ onClose, onSwitch, users, onRegister }){
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [error, setError] = useState("");
-  function submit(e){
-    e.preventDefault();
-    const uname = username.trim();
-    if(!uname || !password){ setError("Fill in all fields."); return; }
-    if(users[uname]){ setError("That username is already taken."); return; }
-    if(password !== confirm){ setError("Passwords don't match."); return; }
-    onRegister(uname, password);
-  }
-  return (
-    <Modal title="Create an account" onClose={onClose}>
-      <form onSubmit={submit}>
-        <Field label="Username"><input required autoFocus className={inputClass} style={inputStyle} value={username} onChange={e=>setUsername(e.target.value)} /></Field>
-        <Field label="Password"><input required type="password" className={inputClass} style={inputStyle} value={password} onChange={e=>setPassword(e.target.value)} /></Field>
-        <Field label="Confirm password"><input required type="password" className={inputClass} style={inputStyle} value={confirm} onChange={e=>setConfirm(e.target.value)} /></Field>
-        {error && <div className="text-xs font-semibold mb-3" style={{ color:"var(--danger)" }}>{error}</div>}
-        <Button type="submit" variant="primary" className="w-full">Create account</Button>
-        <p className="text-xs text-center mt-4" style={{ color:"var(--ink-soft)" }}>Already have an account? <button type="button" onClick={onSwitch} className="font-semibold" style={{ color:"var(--accent)" }}>Log in</button></p>
-        <p className="text-[11px] text-center mt-3" style={{ color:"var(--ink-faint)" }}>Demo account only &mdash; stored in your browser.</p>
-      </form>
-    </Modal>
-  );
-}
 function GdStatsForm({ initial, onSubmit, onClose, mandatory, z }){
   const [displayName, setDisplayName] = useState(initial.displayName||"");
   const [gdUsername, setGdUsername] = useState(initial.gdUsername||"");
@@ -1816,125 +1673,6 @@ function ProfileModal({ username, ctx, onClose }){
     </Modal>
   );
 }
-function AdminPanel({ onClose, users, session, role, auditLog, onBan, onUnban, onRoleChange, onExport, onImportFile, announcement, onSetAnnouncement, maintenanceOn, onToggleMaintenance }){
-  const [tab, setTab] = useState("moderation");
-  const [announceDraft, setAnnounceDraft] = useState(announcement ? announcement.text : "");
-  const isSuper = role==="Super Admin";
-  const fileRef = useRef(null);
-  const tabs = [ { key:"moderation", label:"Moderation" }, { key:"roles", label:"Roles" }, { key:"announcement", label:"Announcement" }, { key:"audit", label:"Audit log" }, { key:"backup", label:"Backup" }, { key:"server", label:"Server" } ];
-  return (
-    <Modal title="Admin panel" onClose={onClose} wide>
-      <div className="flex gap-1.5 mb-5 flex-wrap">
-        {tabs.map(t=>(
-          <button key={t.key} onClick={()=>setTab(t.key)} className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: tab===t.key ? "var(--ink)" : "var(--bg-soft)", color: tab===t.key ? "var(--bg)" : "var(--ink-soft)" }}>{t.label}</button>
-        ))}
-      </div>
-      {tab==="moderation" && ( !isSuper ? <EmptyState text="Only Super Admins can manage bans." /> : (
-        <div className="space-y-2 max-h-80 overflow-y-auto">
-          {Object.keys(users).map(name=>{
-            const u = users[name];
-            return (
-              <div key={name} className="flex items-center gap-3 rounded-lg px-3 py-2" style={{ background:"var(--bg-soft)" }}>
-                <Avatar name={name} size={28} src={u.avatar}/>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-semibold flex items-center gap-1.5">{u.displayName||name} {u.banned && <BanBadge/>}</div>
-                  <div className="text-[11px]" style={{ color:"var(--ink-faint)" }}>{u.role}</div>
-                </div>
-                {name===session ? <span className="text-[11px]" style={{ color:"var(--ink-faint)" }}>You</span>
-                  : (u.banned ? <Button size="sm" variant="soft" onClick={()=>onUnban(name)}>Unban</Button> : <Button size="sm" variant="danger" onClick={()=>onBan(name)}>Ban</Button>)}
-              </div>
-            );
-          })}
-        </div>
-      ))}
-      {tab==="roles" && ( !isSuper ? <EmptyState text="Only Super Admins can change roles." /> : (
-        <div className="space-y-2 max-h-80 overflow-y-auto">
-          {Object.keys(users).map(name=>(
-            <div key={name} className="flex items-center gap-3 rounded-lg px-3 py-2" style={{ background:"var(--bg-soft)" }}>
-              <Avatar name={name} size={28} src={users[name].avatar}/>
-              <div className="flex-1 text-sm font-semibold">{users[name].displayName||name}</div>
-              <select value={users[name].role} onChange={e=>onRoleChange(name, e.target.value)} className="text-xs rounded-md px-2 py-1.5 bg-transparent" style={{ border:"1px solid var(--line-strong)" }}>
-                {ROLE_LIST.map(r=><option key={r} value={r}>{r}</option>)}
-              </select>
-            </div>
-          ))}
-        </div>
-      ))}
-      {tab==="announcement" && ( !isSuper ? <EmptyState text="Only Super Admins can post announcements." /> : (
-        <div className="space-y-3">
-          <p className="text-sm" style={{ color:"var(--ink-soft)" }}>Broadcast a dismissible banner to every visitor.</p>
-          <textarea rows="3" maxLength="200" className={inputClass} style={inputStyle} value={announceDraft} onChange={e=>setAnnounceDraft(e.target.value)} placeholder="e.g. FIH Megacollab #2 submissions are now open!" />
-          <div className="flex gap-2">
-            <Button variant="primary" onClick={()=>onSetAnnouncement(announceDraft)}>Post announcement</Button>
-            <Button variant="outline" onClick={()=>{ setAnnounceDraft(""); onSetAnnouncement(""); }}>Clear</Button>
-          </div>
-        </div>
-      ))}
-      {tab==="audit" && ( auditLog.length===0 ? <EmptyState text="No mod actions yet." /> : (
-        <div className="space-y-2 max-h-80 overflow-y-auto">
-          {auditLog.map(a=>(
-            <div key={a.id} className="text-sm rounded-lg px-3 py-2 flex items-center justify-between gap-2" style={{ background:"var(--bg-soft)" }}>
-              <span>{a.text}</span>
-              <span className="text-[11px] shrink-0" style={{ color:"var(--ink-faint)" }}>{timeAgo(a.ts)}</span>
-            </div>
-          ))}
-        </div>
-      ))}
-      {tab==="backup" && ( !isSuper ? <EmptyState text="Only Super Admins can manage backups." /> : (
-        <div className="space-y-3">
-          <p className="text-sm" style={{ color:"var(--ink-soft)" }}>Export a full backup of users, levels, submissions, collabs and requests, or restore one.</p>
-          <div className="flex gap-2 flex-wrap">
-            <Button variant="primary" onClick={onExport}>Export JSON</Button>
-            <Button variant="outline" onClick={()=>fileRef.current && fileRef.current.click()}>Import JSON</Button>
-            <input ref={fileRef} type="file" accept="application/json" className="hidden" onChange={onImportFile} />
-          </div>
-        </div>
-      ))}
-      {tab==="server" && ( !isSuper ? <EmptyState text="Only Super Admins can control the server." /> : (
-        <div className="space-y-3">
-          <p className="text-sm" style={{ color:"var(--ink-soft)" }}>Pausing the server exports a full backup and shows a maintenance screen to everyone except Super Admins.</p>
-          <Button variant={maintenanceOn?"danger":"primary"} onClick={onToggleMaintenance}>{maintenanceOn ? "Resume server" : "Pause server"}</Button>
-          {maintenanceOn && <div className="text-xs font-semibold" style={{ color:"var(--danger)" }}>Server is currently paused for standard users.</div>}
-        </div>
-      ))}
-    </Modal>
-  );
-}
-
-/* ---------------------------------- sidebar / topbar / bottombar ---------------------------------- */
-function ProfileCard({ session, user, collapsed, points, onOpenSelf, avatarSrc, frameId, displayName }){
-  if(!session){
-    return collapsed ? null : (
-      <div className="mx-3 mb-4 rounded-xl p-3 text-xs" style={{ background:"var(--sidebar-active)", color:"var(--sidebar-ink-soft)" }}>Sign in to track your progress and points.</div>
-    );
-  }
-  const pct = Math.min(100, Math.round(((points||0) % 500)/500*100));
-  return (
-    <button onClick={onOpenSelf} className={"flex items-center gap-2.5 mx-3 mb-4 rounded-xl p-2.5 text-left w-[calc(100%-1.5rem)] "+(collapsed?"justify-center":"")} style={{ background:"var(--sidebar-active)" }}>
-      <AvatarFramed name={session} size={collapsed?32:38} src={avatarSrc} frameId={frameId} />
-      {!collapsed && (
-        <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold truncate" style={{ color:"var(--sidebar-ink)" }}>{displayName}</div>
-          <div className="text-[11px] truncate mb-1" style={{ color:"var(--sidebar-ink-soft)" }}>{user.title}</div>
-          <div className="h-1 rounded-full overflow-hidden" style={{ background:"rgba(255,255,255,0.08)" }}><div className="h-full prog-fill" style={{ width:pct+"%", background:"var(--accent)" }} /></div>
-          <div className="text-[10px] mt-1" style={{ color:"var(--sidebar-ink-soft)" }}>{(points||0).toLocaleString()} pts</div>
-        </div>
-      )}
-    </button>
-  );
-}
-const NAV_ITEMS = [
-  { key:"home", labelKey:"home", icon:IconHome },
-  { key:"discord", labelKey:"discord", icon:IconDiscord },
-  { key:"submit", labelKey:"submit", icon:IconUpload },
-  { key:"creators", labelKey:"creators", icon:IconAward },
-  { key:"collab", labelKey:"collab", icon:IconUsers },
-  { key:"helper", labelKey:"helper", icon:IconHelper },
-  { key:"fish", labelKey:"fish", icon:IconFish },
-  { key:"other", labelKey:"other", icon:IconLayers },
-  { key:"events", labelKey:"events", icon:IconCalendar },
-  { key:"decorated", labelKey:"decorated", icon:IconPalette },
-];
 function Sidebar({ page, setPage, collapsed, setCollapsed, session, user, points, onOpenSelf, avatarSrc, frameId, displayName, lang }){
   const t = I18N[lang] || I18N.en;
   return (
@@ -2095,8 +1833,8 @@ function App(){
   function logAudit(text){ setAuditLog(prev=>[{ id:"A"+Date.now()+Math.random(), ts:Date.now(), text }, ...prev].slice(0,200)); }
   function logActivity(text){ setActivityFeed(prev=>[{ id:"F"+Date.now()+Math.random(), ts:Date.now(), text }, ...prev].slice(0,50)); }
 
-  function handleRegister(username, password){
-    const newUser = makeUser({ password, displayName:username, createdAt:Date.now(), lastStatUpdate:null, title:"Newcomer", discordTag:discordTagFor(username) });
+  function handleRegister(username, password, email){
+    const newUser = makeUser({ password, email, emailVerified:true, displayName:username, createdAt:Date.now(), lastStatUpdate:null, title:"Newcomer", discordTag:discordTagFor(username) });
     setUsers(prev=>({ ...prev, [username]: newUser }));
     setSession(username);
     setShowRegister(false);
@@ -2504,9 +2242,9 @@ function App(){
       </div>
       <BottomBar lang={lang} setLang={setLang} session={session} bgId={equippedBgId} setBgId={(id)=>session && updateProfile(session,{equippedSiteBg:id})} unlockedBgIds={unlockedBgIds} />
 
-      {showLogin && <LoginModal users={users} onClose={()=>setShowLogin(false)} onSwitch={()=>{ setShowLogin(false); setShowRegister(true); }} onLogin={handleLogin} />}
-      {showRegister && <RegisterModal users={users} onClose={()=>setShowRegister(false)} onSwitch={()=>{ setShowRegister(false); setShowLogin(true); }} onRegister={handleRegister} />}
-      {showAdmin && <AdminPanel onClose={()=>setShowAdmin(false)} users={users} session={session} role={role} auditLog={auditLog} onBan={banUserGlobal} onUnban={unbanUserGlobal} onRoleChange={changeUserRole} onExport={handleExport} onImportFile={handleImportFile} announcement={announcement} onSetAnnouncement={setAnnouncementText} maintenanceOn={maintenanceOn} onToggleMaintenance={toggleMaintenance} />}
+      {showLogin && <window.LoginModal users={users} onClose={()=>setShowLogin(false)} onSwitch={()=>{ setShowLogin(false); setShowRegister(true); }} onLogin={handleLogin} />}
+      {showRegister && <window.RegisterModal users={users} onClose={()=>setShowRegister(false)} onSwitch={()=>{ setShowRegister(false); setShowLogin(true); }} onRegister={handleRegister} />}
+      {showAdmin && <window.AdminPanel onClose={()=>setShowAdmin(false)} users={users} session={session} role={role} auditLog={auditLog} onBan={banUserGlobal} onUnban={unbanUserGlobal} onRoleChange={changeUserRole} onExport={handleExport} onImportFile={handleImportFile} announcement={announcement} onSetAnnouncement={setAnnouncementText} maintenanceOn={maintenanceOn} onToggleMaintenance={toggleMaintenance} />}
       {profileTarget && <ProfileModal username={profileTarget} ctx={ctx} onClose={()=>setProfileTarget(null)} />}
       {levelDetailLevel && <LevelDetailModal level={levelDetailLevel} scope={levelDetail.scope} sublistId={levelDetail.sublistId} ctx={ctx} onClose={()=>setLevelDetail(null)} />}
       {showMandatoryStats && currentUser && (
@@ -2528,6 +2266,3 @@ function App(){
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
-</script>
-</body>
-</html>

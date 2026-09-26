@@ -1,0 +1,25 @@
+@keyframes fadeSlideUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+@keyframes modalPop{ from{opacity:0; transform:scale(.96) translateY(8px);} to{opacity:1; transform:scale(1) translateY(0);} }
+@keyframes pulseDot{ 0%,100%{opacity:.4;} 50%{opacity:1;} }
+@keyframes bannerDrop{ from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:translateY(0);} }
+@keyframes iconSpin{ from{ transform:rotate(-30deg) scale(.75); opacity:.25; } to{ transform:rotate(0deg) scale(1); opacity:1; } }
+@keyframes ringGlow{ 0%,100%{ filter:brightness(1); } 50%{ filter:brightness(1.18); } }
+@keyframes navGlow{ 0%,100%{ box-shadow:0 0 0 1px rgba(70,52,255,.0), 0 0 0px rgba(70,52,255,0); } 50%{ box-shadow:0 0 0 1px rgba(70,52,255,.35), 0 0 14px rgba(70,52,255,.22); } }
+@keyframes staggerIn{ from{ opacity:0; transform:translateY(14px) scale(.97); filter:blur(3px); } to{ opacity:1; transform:translateY(0) scale(1); filter:blur(0); } }
+@keyframes rippleAnim{ to{ transform:scale(2.4); opacity:0; } }
+@keyframes confettiPop{ 0%{ opacity:1; transform:translate(0,0) rotate(0deg) scale(1); } 100%{ opacity:0; transform:translate(var(--dx,0px), 240px) rotate(var(--rot,180deg)) scale(.5); } }
+@keyframes toastPop{ 0%{ opacity:0; transform:translateX(16px) scale(.9); } 60%{ opacity:1; transform:translateX(-3px) scale(1.03); } 100%{ opacity:1; transform:translateX(0) scale(1); } }
+@keyframes countPulse{ 0%{ transform:scale(1); } 40%{ transform:scale(1.12); } 100%{ transform:scale(1); } }
+@keyframes floatDrift{ 0%{ transform:translateY(0) rotate(0deg); } 50%{ transform:translateY(-26px) rotate(8deg); } 100%{ transform:translateY(0) rotate(0deg); } }
+
+/* Motion layer: composited transforms keep glass UI responsive. */
+@media (prefers-reduced-motion: no-preference){
+  .lift-hover{ will-change:transform; }
+  .lift-hover:hover{ transform:translateY(-4px) scale(1.008); }
+  .modal-pop{ transform-origin:center bottom; }
+  main > .relative.z-10{ animation-duration:.52s; }
+}
+@media (prefers-reduced-motion: reduce){
+  .float-icon{ animation:none !important; }
+}
+
