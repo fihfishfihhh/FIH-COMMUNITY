@@ -86,36 +86,15 @@ window.AdminPanel = function AdminPanel({ onClose, users, session, role, auditLo
 }
 
 /* ---------------------------------- sidebar / topbar / bottombar ---------------------------------- */
-function ProfileCard({ session, user, collapsed, points, onOpenSelf, avatarSrc, frameId, displayName }){
-  if(!session){
-    return collapsed ? null : (
-      <div className="mx-3 mb-4 rounded-xl p-3 text-xs" style={{ background:"var(--sidebar-active)", color:"var(--sidebar-ink-soft)" }}>Sign in to track your progress and points.</div>
-    );
-  }
-  const pct = Math.min(100, Math.round(((points||0) % 500)/500*100));
-  return (
-    <button onClick={onOpenSelf} className={"flex items-center gap-2.5 mx-3 mb-4 rounded-xl p-2.5 text-left w-[calc(100%-1.5rem)] "+(collapsed?"justify-center":"")} style={{ background:"var(--sidebar-active)" }}>
-      <window.AvatarFramed name={session} size={collapsed?32:38} src={avatarSrc} frameId={frameId} />
-      {!collapsed && (
-        <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold truncate" style={{ color:"var(--sidebar-ink)" }}>{displayName}</div>
-          <div className="text-[11px] truncate mb-1" style={{ color:"var(--sidebar-ink-soft)" }}>{user.title}</div>
-          <div className="h-1 rounded-full overflow-hidden" style={{ background:"rgba(255,255,255,0.08)" }}><div className="h-full prog-fill" style={{ width:pct+"%", background:"var(--accent)" }} /></div>
-          <div className="text-[10px] mt-1" style={{ color:"var(--sidebar-ink-soft)" }}>{(points||0).toLocaleString()} pts</div>
-        </div>
-      )}
-    </button>
-  );
-}
 const NAV_ITEMS = [
-  { key:"home", labelKey:"home", icon:(props)=><window.IconHome {...props}/> },
-  { key:"discord", labelKey:"discord", icon:(props)=><window.IconDiscord {...props}/> },
-  { key:"submit", labelKey:"submit", icon:(props)=><window.IconUpload {...props}/> },
-  { key:"creators", labelKey:"creators", icon:(props)=><window.IconAward {...props}/> },
-  { key:"collab", labelKey:"collab", icon:(props)=><window.IconUsers {...props}/> },
-  { key:"helper", labelKey:"helper", icon:(props)=><window.IconHelper {...props}/> },
-  { key:"fish", labelKey:"fish", icon:(props)=><window.IconFish {...props}/> },
-  { key:"other", labelKey:"other", icon:(props)=><window.IconLayers {...props}/> },
-  { key:"events", labelKey:"events", icon:(props)=><window.IconCalendar {...props}/> },
-  { key:"decorated", labelKey:"decorated", icon:(props)=><window.IconPalette {...props}/> },
+  { key:"home", labelKey:"home", icon:(props)=>window.IconHome ? <window.IconHome {...props}/> : null },
+  { key:"discord", labelKey:"discord", icon:(props)=>window.IconDiscord ? <window.IconDiscord {...props}/> : null },
+  { key:"submit", labelKey:"submit", icon:(props)=>window.IconUpload ? <window.IconUpload {...props}/> : null },
+  { key:"creators", labelKey:"creators", icon:(props)=>window.IconAward ? <window.IconAward {...props}/> : null },
+  { key:"collab", labelKey:"collab", icon:(props)=>window.IconUsers ? <window.IconUsers {...props}/> : null },
+  { key:"helper", labelKey:"helper", icon:(props)=>window.IconHelper ? <window.IconHelper {...props}/> : null },
+  { key:"fish", labelKey:"fish", icon:(props)=>window.IconFish ? <window.IconFish {...props}/> : null },
+  { key:"other", labelKey:"other", icon:(props)=>window.IconLayers ? <window.IconLayers {...props}/> : null },
+  { key:"events", labelKey:"events", icon:(props)=>window.IconCalendar ? <window.IconCalendar {...props}/> : null },
+  { key:"decorated", labelKey:"decorated", icon:(props)=>window.IconPalette ? <window.IconPalette {...props}/> : null },
 ];

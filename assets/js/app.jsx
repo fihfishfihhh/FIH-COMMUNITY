@@ -351,6 +351,16 @@ function EmptyState({ text }){
   return <div className="text-sm rounded-xl px-4 py-8 text-center" style={{ color:"var(--ink-faint)", border:"1px dashed var(--line-strong)" }}>{text}</div>;
 }
 
+function Badge({ children, tone="neutral" }){
+  const tones = {
+    neutral:{ background:"var(--bg-soft)", color:"var(--ink-soft)" },
+    success:{ background:"var(--success-soft)", color:"var(--success)" },
+    warning:{ background:"var(--warn-soft)", color:"var(--warn)" },
+    danger:{ background:"var(--danger-soft)", color:"var(--danger)" },
+  };
+  return <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={tones[tone]||tones.neutral}>{children}</span>;
+}
+
 // Shared UI contract for independently bundled auth/admin surfaces. Keep these assignments
 // after each definition so modules can safely resolve the values at render time.
 window.IconHome = IconHome;
@@ -368,6 +378,7 @@ window.EmptyState = EmptyState;
 window.Avatar = Avatar;
 window.AvatarFramed = AvatarFramed;
 window.Button = Button;
+window.Badge = Badge;
 window.Field = Field;
 window.BanBadge = BanBadge;
 window.ROLE_LIST = ROLE_LIST;
@@ -1698,6 +1709,28 @@ function ProfileModal({ username, ctx, onClose }){
     </Modal>
   );
 }
+window.ProfileCard = function ProfileCard({ session, user, collapsed, points, onOpenSelf, avatarSrc, frameId, displayName }){
+  if(!session){
+    return collapsed ? null : (
+      <div className="mx-3 mb-4 rounded-xl p-3 text-xs" style={{ background:"var(--sidebar-active)", color:"var(--sidebar-ink-soft)" }}>Sign in to track your progress and points.</div>
+    );
+  }
+  const pct = Math.min(100, Math.round(((points||0) % 500)/500*100));
+  return (
+    <button onClick={onOpenSelf} className={"flex items-center gap-2.5 mx-3 mb-4 rounded-xl p-2.5 text-left w-[calc(100%-1.5rem)] "+(collapsed?"justify-center":"")} style={{ background:"var(--sidebar-active)" }}>
+      <window.AvatarFramed name={session} size={collapsed?32:38} src={avatarSrc} frameId={frameId} />
+      {!collapsed && (
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-semibold truncate" style={{ color:"var(--sidebar-ink)" }}>{displayName}</div>
+          <div className="text-[11px] truncate mb-1" style={{ color:"var(--sidebar-ink-soft)" }}>{user.title}</div>
+          <div className="h-1 rounded-full overflow-hidden" style={{ background:"rgba(255,255,255,0.08)" }}><div className="h-full prog-fill" style={{ width:pct+"%", background:"var(--accent)" }} /></div>
+          <div className="text-[10px] mt-1" style={{ color:"var(--sidebar-ink-soft)" }}>{(points||0).toLocaleString()} pts</div>
+        </div>
+      )}
+    </button>
+  );
+}
+
 function Sidebar({ page, setPage, collapsed, setCollapsed, session, user, points, onOpenSelf, avatarSrc, frameId, displayName, lang }){
   const t = I18N[lang] || I18N.en;
   return (
@@ -1705,7 +1738,7 @@ function Sidebar({ page, setPage, collapsed, setCollapsed, session, user, points
       <button onClick={()=>setCollapsed(!collapsed)} title={collapsed?t.showPanel:t.hidePanel} className={"flex items-center gap-2 mx-3 mb-5 px-2 py-1.5 rounded-md text-[11px] font-semibold tracking-wide "+(collapsed?"justify-center":"")} style={{ color:"var(--sidebar-ink-soft)" }}>
         <IconPanel size={16}/>{!collapsed && <span>{t.hidePanel}</span>}
       </button>
-      <ProfileCard session={session} user={user} collapsed={collapsed} points={points} onOpenSelf={onOpenSelf} avatarSrc={avatarSrc} frameId={frameId} displayName={displayName} />
+      {window.ProfileCard ? <window.ProfileCard session={session} user={user} collapsed={collapsed} points={points} onOpenSelf={onOpenSelf} avatarSrc={avatarSrc} frameId={frameId} displayName={displayName} /> : null}
       <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto">
         {NAV_ITEMS.map(item=>{
           const Icon = item.icon;
@@ -2289,4 +2322,13 @@ function App(){
     </div>
   );
 }
+
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+
+// Final safety assignment for module consumers and for alternate bundle load orders.
+Object.assign(window, {
+  ProfileCard: window.ProfileCard, Modal, EmptyState, Avatar, AvatarFramed, Button, Badge,
+  Field, BanBadge, ROLE_LIST, ROLE_META, inputClass, inputStyle, timeAgo,
+  IconHome, IconDiscord, IconUpload, IconAward, IconUsers, IconHelper,
+  IconFish, IconLayers, IconCalendar, IconPalette,
+});
