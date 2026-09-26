@@ -1,17 +1,3 @@
-window.IconBase = ({ children, size = 18 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{children}</svg>
-);
-window.IconHome = (p) => <window.IconBase {...p}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></window.IconBase>;
-window.IconDiscord = (p) => <window.IconBase {...p}><rect x="4" y="6" width="16" height="11" rx="4"/><path d="M8 20l2-3h4l2 3"/></window.IconBase>;
-window.IconUpload = (p) => <window.IconBase {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></window.IconBase>;
-window.IconAward = (p) => <window.IconBase {...p}><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></window.IconBase>;
-window.IconUsers = (p) => <window.IconBase {...p}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 1 0 7.75"/></window.IconBase>;
-window.IconHelper = (p) => <window.IconBase {...p}><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></window.IconBase>;
-window.IconFish = (p) => <window.IconBase {...p}><path d="M6.5 12c.94-2.07 3.08-3.5 5.5-3.5 3.5 0 6.5 2.5 7.5 5.5-1 3-4 5.5-7.5 5.5-2.42 0-4.56-1.43-5.5-3.5"/></window.IconBase>;
-window.IconLayers = (p) => <window.IconBase {...p}><polygon points="12 2 2 7 12 12 22 7 12 2"/><polygon points="2 17 12 12 22 7 12 2"/><polygon points="2 12 12 17 22 12"/><polygon points="2 12 12 17 22 12"/></window.IconBase>;
-window.IconCalendar = (p) => <window.IconBase {...p}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></window.IconBase>;
-window.IconPalette = (p) => <window.IconBase {...p}><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.92 0 1.5-.72 1.5-1.5 0-.42-.16-.8-.42-1.08-.27-.29-.42-.68-.42-1.08 0-.83.67-1.5 1.5-1.5H16c3.3 0 6-2.7 6-6 0-5.5-4.5-10-10-10z"/></window.IconBase>;
-
 const { useState, useEffect, useMemo, useRef } = React;
 
 /* ---------------------------------- storage / utils ---------------------------------- */
@@ -364,6 +350,31 @@ function Modal({ title, onClose, children, wide, z, hideClose }){
 function EmptyState({ text }){
   return <div className="text-sm rounded-xl px-4 py-8 text-center" style={{ color:"var(--ink-faint)", border:"1px dashed var(--line-strong)" }}>{text}</div>;
 }
+
+// Shared UI contract for independently bundled auth/admin surfaces. Keep these assignments
+// after each definition so modules can safely resolve the values at render time.
+window.IconHome = IconHome;
+window.IconDiscord = IconDiscord;
+window.IconUpload = IconUpload;
+window.IconAward = IconAward;
+window.IconUsers = IconUsers;
+window.IconHelper = IconHelper;
+window.IconFish = IconFish;
+window.IconLayers = IconLayers;
+window.IconCalendar = IconCalendar;
+window.IconPalette = IconPalette;
+window.Modal = Modal;
+window.EmptyState = EmptyState;
+window.Avatar = Avatar;
+window.AvatarFramed = AvatarFramed;
+window.Button = Button;
+window.Field = Field;
+window.BanBadge = BanBadge;
+window.ROLE_LIST = ROLE_LIST;
+window.ROLE_META = ROLE_META;
+window.inputClass = inputClass;
+window.inputStyle = inputStyle;
+window.timeAgo = timeAgo;
 function PromptModal({ title, label, defaultValue, onSubmit, onClose, placeholder, multiline, z }){
   const [value, setValue] = useState(defaultValue || "");
   function submit(e){ e.preventDefault(); onSubmit(value); onClose(); }

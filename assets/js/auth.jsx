@@ -12,15 +12,15 @@ window.LoginModal = function LoginModal({ onClose, onSwitch, users, onLogin }){
     if(!u.emailVerified){ setError("Verify your email before signing in. Register again to complete verification."); return; }
     onLogin(username);
   }
-  return <Modal title="Log in" onClose={onClose}>
+  return <window.Modal title="Log in" onClose={onClose}>
     <form onSubmit={submit}>
-      <Field label="Username"><input required autoFocus autoComplete="username" className={inputClass} style={inputStyle} value={username} onChange={e=>setUsername(e.target.value)} /></Field>
-      <Field label="Password"><input required type="password" autoComplete="current-password" className={inputClass} style={inputStyle} value={password} onChange={e=>setPassword(e.target.value)} /></Field>
+      <window.Field label="Username"><input required autoFocus autoComplete="username" className={window.inputClass} style={window.inputStyle} value={username} onChange={e=>setUsername(e.target.value)} /></window.Field>
+      <window.Field label="Password"><input required type="password" autoComplete="current-password" className={window.inputClass} style={window.inputStyle} value={password} onChange={e=>setPassword(e.target.value)} /></window.Field>
       {error && <div className="text-xs font-semibold mb-3" style={{ color:"var(--danger)" }}>{error}</div>}
-      <Button type="submit" variant="primary" className="w-full">Log in</Button>
+      <window.Button type="submit" variant="primary" className="w-full">Log in</window.Button>
       <p className="text-xs text-center mt-4" style={{ color:"var(--ink-soft)" }}>No account? <button type="button" onClick={onSwitch} className="font-semibold" style={{ color:"var(--accent)" }}>Register</button></p>
     </form>
-  </Modal>;
+  </window.Modal>;
 }
 window.RegisterModal = function RegisterModal({ onClose, onSwitch, users, onRegister }){
   const [step, setStep] = useAuthState("details");
@@ -45,21 +45,21 @@ window.RegisterModal = function RegisterModal({ onClose, onSwitch, users, onRegi
     if(otp !== sentOtp){ setError("That verification code is not valid. Check your email and try again."); return; }
     onRegister(username.trim(), password, email.trim().toLowerCase());
   }
-  return <Modal title={step==="details" ? "Create an account" : "Verify your email"} onClose={onClose}>
+  return <window.Modal title={step==="details" ? "Create an account" : "Verify your email"} onClose={onClose}>
     {step==="details" ? <form onSubmit={sendVerification}>
-      <Field label="Username"><input required autoFocus autoComplete="username" className={inputClass} style={inputStyle} value={username} onChange={e=>setUsername(e.target.value)} /></Field>
-      <Field label="Email"><input required type="email" autoComplete="email" className={inputClass} style={inputStyle} value={email} onChange={e=>setEmail(e.target.value)} /></Field>
-      <Field label="Password"><input required type="password" autoComplete="new-password" minLength="8" className={inputClass} style={inputStyle} value={password} onChange={e=>setPassword(e.target.value)} /></Field>
-      <Field label="Confirm password"><input required type="password" autoComplete="new-password" className={inputClass} style={inputStyle} value={confirm} onChange={e=>setConfirm(e.target.value)} /></Field>
+      <window.Field label="Username"><input required autoFocus autoComplete="username" className={window.inputClass} style={window.inputStyle} value={username} onChange={e=>setUsername(e.target.value)} /></window.Field>
+      <window.Field label="Email"><input required type="email" autoComplete="email" className={window.inputClass} style={window.inputStyle} value={email} onChange={e=>setEmail(e.target.value)} /></window.Field>
+      <window.Field label="Password"><input required type="password" autoComplete="new-password" minLength="8" className={window.inputClass} style={window.inputStyle} value={password} onChange={e=>setPassword(e.target.value)} /></window.Field>
+      <window.Field label="Confirm password"><input required type="password" autoComplete="new-password" className={window.inputClass} style={window.inputStyle} value={confirm} onChange={e=>setConfirm(e.target.value)} /></window.Field>
       {error && <div className="text-xs font-semibold mb-3" style={{ color:"var(--danger)" }}>{error}</div>}
-      <Button type="submit" variant="primary" className="w-full">Send verification code</Button>
+      <window.Button type="submit" variant="primary" className="w-full">Send verification code</window.Button>
       <p className="text-xs text-center mt-4" style={{ color:"var(--ink-soft)" }}>Already have an account? <button type="button" onClick={onSwitch} className="font-semibold" style={{ color:"var(--accent)" }}>Log in</button></p>
     </form> : <form onSubmit={verify}>
       <p className="text-sm mb-4" style={{ color:"var(--ink-soft)" }}>We sent a six-digit verification code to <strong style={{color:"var(--ink)"}}>{email}</strong>. Enter it to activate your account.</p>
-      <Field label="Verification code"><input required autoFocus inputMode="numeric" pattern="[0-9]{6}" maxLength="6" className={inputClass} style={inputStyle} value={otp} onChange={e=>setOtp(e.target.value)} /></Field>
+      <window.Field label="Verification code"><input required autoFocus inputMode="numeric" pattern="[0-9]{6}" maxLength="6" className={window.inputClass} style={window.inputStyle} value={otp} onChange={e=>setOtp(e.target.value.replace(/\D/g,""))} /></window.Field>
       {error && <div className="text-xs font-semibold mb-3" style={{ color:"var(--danger)" }}>{error}</div>}
-      <Button type="submit" variant="primary" className="w-full">Verify & create account</Button>
-      <button type="button" onClick={()=>{setSentOtp(String(Math.floor(100000+Math.random()*900000)));setOtp("");setError("");}} className="w-full mt-3 text-xs font-semibold" style={{color:"var(--accent)"}}>Resend code</button>
+      <window.Button type="submit" variant="primary" className="w-full">Verify & create account</window.Button>
+      <button type="button" onClick={()=>{setSentOtp(String(Math.floor(100000+Math.random()*900000)));setOtp("");setError("");}} className="w-full mt-3 text-xs font-semibold" style={{color:"var(--accent)"}}>Resend verification code</button>
     </form>}
-  </Modal>;
+  </window.Modal>;
 }
