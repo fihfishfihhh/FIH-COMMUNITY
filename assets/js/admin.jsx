@@ -4,6 +4,11 @@ window.AdminPanel = function AdminPanel({ onClose, users, session, role, auditLo
   const [announceDraft, setAnnounceDraft] = React.useState(announcement ? announcement.text : "");
   const isSuper = role==="Super Admin";
   const fileRef = React.useRef(null);
+function AdminPanel({ onClose, users, session, role, auditLog, onBan, onUnban, onRoleChange, onExport, onImportFile, announcement, onSetAnnouncement, maintenanceOn, onToggleMaintenance }){
+  const [tab, setTab] = useState("moderation");
+  const [announceDraft, setAnnounceDraft] = useState(announcement ? announcement.text : "");
+  const isSuper = role==="Super Admin";
+  const fileRef = useRef(null);
   const tabs = [ { key:"moderation", label:"Moderation" }, { key:"roles", label:"Roles" }, { key:"announcement", label:"Announcement" }, { key:"audit", label:"Audit log" }, { key:"backup", label:"Backup" }, { key:"server", label:"Server" } ];
   return (
     <Modal title="Admin panel" onClose={onClose} wide>
