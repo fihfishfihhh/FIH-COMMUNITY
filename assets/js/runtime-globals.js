@@ -117,3 +117,20 @@ window.AvatarFramed = function AvatarFramed({ name, size = 56, src, frameId }) {
 };
 
 window.profileCardBlue = true;
+
+// Sidebar navigation config — single source of truth, consumed by the
+// sidebar component in main.js (window.NAV_ITEMS) and mirrored for
+// reference in admin.jsx. Icons resolve through the window.Icon* globals
+// defined above so this works regardless of script load order.
+window.NAV_ITEMS = [
+  { key: 'home', labelKey: 'home', icon: window.IconHome },
+  { key: 'discord', labelKey: 'discord', icon: window.IconDiscord },
+  { key: 'submit', labelKey: 'submit', icon: window.IconUpload },
+  { key: 'creators', labelKey: 'creators', icon: window.IconAward },
+  { key: 'collab', labelKey: 'collab', icon: window.IconUsers },
+  { key: 'helper', labelKey: 'helper', icon: window.IconHelper },
+  { key: 'fish', labelKey: 'fish', icon: window.IconFish },
+  { key: 'other', labelKey: 'other', icon: window.IconLayers },
+  { key: 'events', labelKey: 'events', icon: window.IconCalendar },
+  { key: 'decorated', labelKey: 'decorated', icon: window.IconPalette },
+];

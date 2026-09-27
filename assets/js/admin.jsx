@@ -85,16 +85,5 @@ window.AdminPanel = function AdminPanel({ onClose, users, session, role, auditLo
   );
 }
 
-/* ---------------------------------- sidebar / topbar / bottombar ---------------------------------- */
-const NAV_ITEMS = [
-  { key:"home", labelKey:"home", icon:(props)=>window.IconHome ? <window.IconHome {...props}/> : null },
-  { key:"discord", labelKey:"discord", icon:(props)=>window.IconDiscord ? <window.IconDiscord {...props}/> : null },
-  { key:"submit", labelKey:"submit", icon:(props)=>window.IconUpload ? <window.IconUpload {...props}/> : null },
-  { key:"creators", labelKey:"creators", icon:(props)=>window.IconAward ? <window.IconAward {...props}/> : null },
-  { key:"collab", labelKey:"collab", icon:(props)=>window.IconUsers ? <window.IconUsers {...props}/> : null },
-  { key:"helper", labelKey:"helper", icon:(props)=>window.IconHelper ? <window.IconHelper {...props}/> : null },
-  { key:"fish", labelKey:"fish", icon:(props)=>window.IconFish ? <window.IconFish {...props}/> : null },
-  { key:"other", labelKey:"other", icon:(props)=>window.IconLayers ? <window.IconLayers {...props}/> : null },
-  { key:"events", labelKey:"events", icon:(props)=>window.IconCalendar ? <window.IconCalendar {...props}/> : null },
-  { key:"decorated", labelKey:"decorated", icon:(props)=>window.IconPalette ? <window.IconPalette {...props}/> : null },
-];
+/* Sidebar nav config lives once, as window.NAV_ITEMS, in runtime-globals.js
+   (loaded before this file and before main.js) — no local copy here. */
