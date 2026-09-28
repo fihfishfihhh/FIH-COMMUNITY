@@ -63,3 +63,27 @@ window.RegisterModal = function RegisterModal({ onClose, onSwitch, users, onRegi
     </form>}
   </window.Modal>;
 }
+window.ChangePasswordModal = function ChangePasswordModal({ onClose, user, onChangePassword }){
+  const [current, setCurrent] = useAuthState("");
+  const [next, setNext] = useAuthState("");
+  const [confirm, setConfirm] = useAuthState("");
+  const [error, setError] = useAuthState("");
+  function submit(e){
+    e.preventDefault();
+    if(!user || user.password !== current){ setError("Your current password is incorrect."); return; }
+    if(next.length < 8){ setError("New password must be at least 8 characters."); return; }
+    if(next === current){ setError("New password must be different from your current password."); return; }
+    if(next !== confirm){ setError("New passwords don't match."); return; }
+    onChangePassword(next);
+    onClose();
+  }
+  return <window.Modal title="Change password" onClose={onClose}>
+    <form onSubmit={submit}>
+      <window.Field label="Current password"><input required autoFocus type="password" autoComplete="current-password" className={window.inputClass} style={window.inputStyle} value={current} onChange={e=>setCurrent(e.target.value)} /></window.Field>
+      <window.Field label="New password"><input required type="password" autoComplete="new-password" minLength="8" className={window.inputClass} style={window.inputStyle} value={next} onChange={e=>setNext(e.target.value)} /></window.Field>
+      <window.Field label="Confirm new password"><input required type="password" autoComplete="new-password" className={window.inputClass} style={window.inputStyle} value={confirm} onChange={e=>setConfirm(e.target.value)} /></window.Field>
+      {error && <div className="text-xs font-semibold mb-3" style={{ color:"var(--danger)" }}>{error}</div>}
+      <window.Button type="submit" variant="primary" className="w-full">Update password</window.Button>
+    </form>
+  </window.Modal>;
+}
