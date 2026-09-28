@@ -1755,7 +1755,7 @@ function Sidebar({ page, setPage, collapsed, setCollapsed, session, user, points
   );
 }
 const SEARCH_TYPES = ["Player","Level","List","Collab","Etc"];
-function TopBar({ page, query, setQuery, searchType, setSearchType, session, currentUser, onLogout, onOpenLogin, onOpenRegister, theme, setTheme, onOpenProfile, onOpenAdmin, showAdminEntry, avatarSrc, displayName, lang }){
+function TopBar({ page, query, setQuery, searchType, setSearchType, session, currentUser, onLogout, onOpenLogin, onOpenRegister, theme, setTheme, onOpenProfile, onOpenAdmin, onOpenChangePw, showAdminEntry, avatarSrc, displayName, lang }){
   const [menuOpen, setMenuOpen] = useState(false);
   const t = I18N[lang] || I18N.en;
   return (
@@ -1793,6 +1793,7 @@ function TopBar({ page, query, setQuery, searchType, setSearchType, session, cur
                 </div>
                 <button onClick={()=>{ onOpenProfile(session); setMenuOpen(false); }} className="w-full text-left px-3.5 py-2.5 text-sm font-medium">View profile</button>
                 {showAdminEntry && <button onClick={()=>{ onOpenAdmin(); setMenuOpen(false); }} className="w-full text-left px-3.5 py-2.5 text-sm font-medium">Admin panel</button>}
+                <button onClick={()=>{ onOpenChangePw(); setMenuOpen(false); }} className="w-full text-left px-3.5 py-2.5 text-sm font-medium">Change password</button>
                 <button onClick={()=>{ onLogout(); setMenuOpen(false); }} className="w-full text-left px-3.5 py-2.5 text-sm font-medium" style={{ color:"var(--danger)" }}>Log out</button>
               </div>
             )}
@@ -1851,6 +1852,7 @@ function App(){
 
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+  const [showChangePw, setShowChangePw] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showMandatoryStats, setShowMandatoryStats] = useState(false);
   const [profileTarget, setProfileTarget] = useState(null);
@@ -2291,7 +2293,7 @@ function App(){
             session={session} currentUser={currentUser || { title:"", banned:false }} onLogout={handleLogout}
             onOpenLogin={()=>setShowLogin(true)} onOpenRegister={()=>setShowRegister(true)}
             theme={theme} setTheme={setTheme}
-            onOpenProfile={(name)=>setProfileTarget(name)} onOpenAdmin={()=>setShowAdmin(true)} showAdminEntry={showAdminEntry} avatarSrc={ctx.avatarSrc(session)} displayName={selfDisplayName} lang={lang} />
+            onOpenProfile={(name)=>setProfileTarget(name)} onOpenAdmin={()=>setShowAdmin(true)} onOpenChangePw={()=>setShowChangePw(true)} showAdminEntry={showAdminEntry} avatarSrc={ctx.avatarSrc(session)} displayName={selfDisplayName} lang={lang} />
           <main key={page} className="flex-1 overflow-y-auto p-5 sm:p-8 relative">
             <FloatingIcons />
             <div className="relative z-10 animate-fadein">{content}</div>
@@ -2302,6 +2304,7 @@ function App(){
 
       {showLogin && <window.LoginModal users={users} onClose={()=>setShowLogin(false)} onSwitch={()=>{ setShowLogin(false); setShowRegister(true); }} onLogin={handleLogin} />}
       {showRegister && <window.RegisterModal users={users} onClose={()=>setShowRegister(false)} onSwitch={()=>{ setShowRegister(false); setShowLogin(true); }} onRegister={handleRegister} />}
+      {showChangePw && session && users[session] && <window.ChangePasswordModal user={users[session]} onClose={()=>setShowChangePw(false)} onChangePassword={(pw)=>{ setUsers(prev=>({ ...prev, [session]: { ...prev[session], password:pw } })); pushToast("Password updated."); }} />}
       {showAdmin && <window.AdminPanel onClose={()=>setShowAdmin(false)} users={users} session={session} role={role} auditLog={auditLog} onBan={banUserGlobal} onUnban={unbanUserGlobal} onRoleChange={changeUserRole} onExport={handleExport} onImportFile={handleImportFile} announcement={announcement} onSetAnnouncement={setAnnouncementText} maintenanceOn={maintenanceOn} onToggleMaintenance={toggleMaintenance} />}
       {profileTarget && <ProfileModal username={profileTarget} ctx={ctx} onClose={()=>setProfileTarget(null)} />}
       {levelDetailLevel && <LevelDetailModal level={levelDetailLevel} scope={levelDetail.scope} sublistId={levelDetail.sublistId} ctx={ctx} onClose={()=>setLevelDetail(null)} />}
