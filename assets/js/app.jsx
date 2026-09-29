@@ -247,7 +247,9 @@ function StatusBadge({ status }){
 }
 function BanBadge(){ return <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background:"var(--danger)", color:"#fff" }}>BANNED</span>; }
 const ROLE_META = {
-  "Super Admin": { label:"Admin", fg:"#fff", bg:"var(--ink)" },
+  // Fixed (not theme-linked) colors: --ink flips between light/dark text on
+  // theme change, which made this badge render as white-on-white in dark mode.
+  "Super Admin": { label:"Admin", fg:"#ffffff", bg:"#15161b" },
   "Verification Mod": { label:"Verifier", fg:"var(--accent)", bg:"var(--accent-soft)" },
   "List Editor": { label:"Editor", fg:"#2f6fd6", bg:"#e8f0fd" },
 };
@@ -335,14 +337,21 @@ const inputClass = "w-full rounded-lg px-3 py-2 text-sm bg-transparent";
 const inputStyle = { border:"1px solid var(--line-strong)", color:"var(--ink)" };
 
 function Modal({ title, onClose, children, wide, z, hideClose }){
+  // Scrolling lives on this outer layer only (no align-items:center here) —
+  // centering a flex item taller than the viewport traps its top/bottom
+  // outside the scrollable area, which is what made some modals unreachable
+  // by scrolling ("can't pull up to see...").
   return (
-    <div className={"fixed inset-0 "+(z||"z-50")+" flex items-start sm:items-center justify-center p-4 overflow-y-auto backdrop-blur-sm"} style={{ background:"rgba(10,10,14,0.5)" }} onClick={hideClose ? undefined : onClose}>
-      <div onClick={(e)=>e.stopPropagation()} className={"w-full "+(wide?"max-w-xl":"max-w-sm")+" rounded-2xl my-8 modal-pop backdrop-blur-xl"} style={{ background:"var(--glass-bg-strong)", border:"1px solid var(--line)" }}>
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom:"1px solid var(--line)" }}>
-          <h2 className="font-display font-semibold text-lg">{title}</h2>
-          {!hideClose && <button onClick={onClose} aria-label="Close" style={{ color:"var(--ink-soft)" }}><IconX size={20}/></button>}
+    <div className={"fixed inset-0 "+(z||"z-50")+" overflow-y-auto backdrop-blur-sm"} style={{ background:"rgba(10,10,14,0.5)" }} onClick={hideClose ? undefined : onClose}>
+      <div className="min-h-full flex items-start sm:items-center justify-center p-4">
+        <div onClick={(e)=>e.stopPropagation()} className={"w-full "+(wide?"max-w-xl":"max-w-sm")+" rounded-2xl my-8 modal-pop backdrop-blur-xl"} style={{ background:"var(--glass-bg-strong)", border:"1px solid var(--line)" }}>
+          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom:"1px solid var(--line)" }}>
+            <h2 className="font-display font-semibold text-lg">{title}</h2>
+            {!hideClose && <button onClick={onClose} aria-label="Close" style={{ color:"var(--ink-soft)" }}><IconX size={20}/></button>}
+          </div>
+          {/* Own scroll + cap as a second safety net (e.g. a phone with the keyboard open). */}
+          <div className="p-5 max-h-[75vh] overflow-y-auto">{children}</div>
         </div>
-        <div className="p-5">{children}</div>
       </div>
     </div>
   );
@@ -514,8 +523,12 @@ function ListControls({ sortBy, setSortBy, diffFilter, setDiffFilter, difficulti
   );
 }
 function CommentSection({ targetType, targetId, ctx }){
-  const { comments, session, isMod, onAddComment, onDeleteComment, likes, onToggleLike, avatarSrc, onOpenProfile, nameFor } = ctx;
+  const { comments, session, isMod, onAddComment, onDeleteComment, likes, onToggleLike, avatarSrc, onOpenProfile, nameFor, commentGate } = ctx;
   const [text, setText] = useState("");
+  const [, forceTick] = useState(0); // re-render once a second while locked, so the countdown updates
+  const myGate = session ? (commentGate[session]||{}) : {};
+  const lockedUntil = myGate.lockUntil && myGate.lockUntil > Date.now() ? myGate.lockUntil : 0;
+  useEffect(()=>{ if(!lockedUntil) return; const t=setInterval(()=>forceTick(n=>n+1), 1000); return ()=>clearInterval(t); }, [lockedUntil]);
   const list = comments.filter(c=>c.targetType===targetType && c.targetId===targetId).sort((a,b)=>a.ts-b.ts);
   function submit(e){
     e.preventDefault();
@@ -552,12 +565,17 @@ function CommentSection({ targetType, targetId, ctx }){
           );
         })}
       </div>
-      {session ? (
+      {!session ? <div className="text-xs" style={{ color:"var(--ink-faint)" }}>Sign in to comment.</div>
+      : lockedUntil ? (
+        <div className="text-xs font-semibold" style={{ color:"var(--danger)" }}>
+          You're commenting too fast — locked for {Math.ceil((lockedUntil-Date.now())/60000)} more min.
+        </div>
+      ) : (
         <form onSubmit={submit} className="flex gap-2">
           <input className={inputClass} style={inputStyle} placeholder="Add a comment..." value={text} onChange={e=>setText(e.target.value)} maxLength={500} />
           <Button size="sm" variant="primary" type="submit">Post</Button>
         </form>
-      ) : <div className="text-xs" style={{ color:"var(--ink-faint)" }}>Sign in to comment.</div>}
+      )}
     </div>
   );
 }
@@ -570,7 +588,7 @@ function LevelCard({ level, ctx, scope, sublistId, index=0 }){
   const likeCount = (ctx.likes[likeKey]||[]).length;
   return (
     <div className="rounded-xl overflow-hidden flex flex-col lift-hover stagger-item" style={{ background:"var(--bg-card)", border:"1px solid var(--line)", animationDelay:(index*0.05)+"s" }}>
-      <div className="aspect-video flex items-center justify-center relative" style={{ background:"var(--bg-soft)" }}>
+      <div className="aspect-video flex items-center justify-center relative" style={level.coverUrl ? { backgroundImage:"url("+level.coverUrl+")", backgroundSize:"cover", backgroundPosition:"center" } : { background:"var(--bg-soft)" }}>
         {level.special && <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full z-10" style={{ background:"var(--ink)", color:"var(--bg)" }}>Special</span>}
         <VerifiedBadge verified={level.verified} />
         {level.videoUrl ? (
@@ -663,6 +681,12 @@ function LevelDetailModal({ level, scope, sublistId, ctx, onClose }){
         {canRename && (
           <button onClick={()=>setAction({ type:"rename" })} className="text-xs font-semibold" style={{ color:"var(--ink-soft)" }}>Rename level</button>
         )}
+        {ctx.canEditLists && (
+          <button onClick={()=>setAction({ type:"cover" })} className="text-xs font-semibold" style={{ color:"var(--ink-soft)" }}>Set cover photo</button>
+        )}
+        {ctx.canEditLists && (
+          <button onClick={()=>setAction({ type:"rank" })} className="text-xs font-semibold" style={{ color:"var(--ink-soft)" }}>Edit rank</button>
+        )}
         {ctx.isSuperAdmin && (
           <button onClick={()=>setAction({ type:"delete" })} className="text-xs font-semibold" style={{ color:"var(--danger)" }}>Delete level</button>
         )}
@@ -671,6 +695,14 @@ function LevelDetailModal({ level, scope, sublistId, ctx, onClose }){
       {action && action.type==="rename" && (
         <PromptModal z="z-[55]" title="Rename level" label="New level name" defaultValue={level.name}
           onSubmit={(v)=>{ if(v.trim()) ctx.onRenameLevel(scope, level.id, sublistId, v.trim()); }} onClose={()=>setAction(null)} />
+      )}
+      {action && action.type==="cover" && (
+        <PromptModal z="z-[55]" title="Set cover photo" label="Image URL (leave blank to remove)" defaultValue={level.coverUrl||""} placeholder="https://..."
+          onSubmit={(v)=>ctx.onSetLevelCover(scope, level.id, sublistId, v.trim())} onClose={()=>setAction(null)} />
+      )}
+      {action && action.type==="rank" && (
+        <PromptModal z="z-[55]" title="Edit rank" label="New rank (position number)" defaultValue={String(level.rank)}
+          onSubmit={(v)=>{ const n=parseInt(v,10); if(Number.isFinite(n) && n>0) ctx.onSetLevelRank(scope, level.id, sublistId, n); }} onClose={()=>setAction(null)} />
       )}
       {action && action.type==="delete" && (
         <ConfirmModal z="z-[55]" title="Delete level" message="Delete this level entirely? This cannot be undone." danger
@@ -843,9 +875,15 @@ function SubmitPage({ session, submissions, addSubmission, canModerateSubs, onDe
   const [inspecting,setInspecting]=useState(null);
   const [renamingId,setRenamingId]=useState(null);
 
+  // ids are "S"+Date.now(), so their own timestamp doubles as a submission log — no extra field needed.
+  const mySubs = submissions.filter(s=>s.submittedBy===session);
+  const lastSubTs = mySubs.length ? Math.max(...mySubs.map(s=>Number(s.id.slice(1))||0)) : 0;
+  const canSubmitToday = !lastSubTs || (Date.now()-lastSubTs) >= 86400000;
+
   function submit(e){
     e.preventDefault();
     if(!session || !name.trim() || !videoUrl.trim()) return;
+    if(!canSubmitToday){ ctx.pushToast("You can only submit one level every 24 hours."); return; }
     addSubmission({
       id:"S"+Date.now(), name:name.trim(), playerName:(playerName.trim()||session), percentage:Number(percentage)||0,
       difficulty, videoUrl:videoUrl.trim(), rawFootageUrl:rawFootageUrl.trim(), submittedBy:session, status:"Pending", flagged:false,
@@ -865,6 +903,7 @@ function SubmitPage({ session, submissions, addSubmission, canModerateSubs, onDe
         <p className="text-sm mb-5" style={{ color:"var(--ink-soft)" }}>Levels enter the review queue before points are awarded.</p>
         {!session ? <EmptyState text="Sign in to submit a level." /> : (
           <form onSubmit={submit}>
+            {!canSubmitToday && <div className="text-xs font-semibold mb-3" style={{ color:"var(--warn)" }}>You've already submitted today — come back tomorrow.</div>}
             <Field label="Level name"><input required className={inputClass} style={inputStyle} value={name} onChange={e=>setName(e.target.value)} placeholder="Level name" /></Field>
             <Field label="Player name"><input className={inputClass} style={inputStyle} value={playerName} onChange={e=>setPlayerName(e.target.value)} placeholder={session} /></Field>
             <div className="grid grid-cols-2 gap-4">
@@ -1109,6 +1148,9 @@ function CollabPage({ session, collabs, query, ctx, onRequest, onDecide, onCreat
     return collabs.filter(c=>c.name.toLowerCase().includes(q) || c.host.toLowerCase().includes(q));
   }, [collabs, query]);
   const hosted = collabs.filter(c=>c.host===session);
+  // ids are "C"+Date.now() — reuse that as the creation timestamp, same trick as level submissions.
+  const lastHostTs = hosted.length ? Math.max(...hosted.map(c=>Number(c.id.slice(1))||0)) : 0;
+  const canHostToday = !lastHostTs || (Date.now()-lastHostTs) >= 86400000;
   return (
     <div>
       <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
@@ -1116,7 +1158,7 @@ function CollabPage({ session, collabs, query, ctx, onRequest, onDecide, onCreat
           <h1 className="font-display font-semibold text-2xl sm:text-3xl mb-1">Collab host</h1>
           <p className="text-sm" style={{ color:"var(--ink-soft)" }}>Find open collabs or host your own.</p>
         </div>
-        <Button variant="primary" onClick={()=> session ? setShowCreate(true) : ctx.pushToast("Sign in to host a collab.")}><IconPlus size={16}/> Host a collab</Button>
+        <Button variant="primary" onClick={()=> !session ? ctx.pushToast("Sign in to host a collab.") : !canHostToday ? ctx.pushToast("You can only host one new collab every 24 hours.") : setShowCreate(true)}><IconPlus size={16}/> Host a collab</Button>
       </div>
       <div className="mb-6"><RulesPanel title="Collab rules" rules={["Hosts must keep slot counts accurate.","No ghosting accepted members — communicate delays.","Credit every contributor when the collab is completed.","Mods may remove inactive hosts after 30 days of silence."]} /></div>
       {session && hosted.length>0 && (
@@ -1283,7 +1325,10 @@ function EventsPage({ session, ctx, events, onCreateEvent, onJoinEvent, onSetWin
         <div className="grid gap-4" style={{ gridTemplateColumns:"repeat(auto-fill, minmax(280px, 1fr))" }}>
           {events.map((ev,i)=>{
             const joined = session && ev.entries.includes(session);
-            const canManage = session && (session===ev.host || ctx.isSuperAdmin);
+            // Hosts can pick a Fun/Admin-event winner themselves (no points on the line).
+            // A Reward event pays real points, so only mods/admin can set that winner —
+            // otherwise a host could just declare themselves the winner for free points.
+            const canManage = session && (ctx.isSuperAdmin || (ev.category!=="Reward" && session===ev.host) || (ev.category==="Reward" && ctx.canModerateSubs));
             return (
               <div key={ev.id} className="rounded-xl p-4 lift-hover stagger-item" style={{ background:"var(--bg-card)", border:"1px solid var(--line)", animationDelay:(i*0.06)+"s" }}>
                 <div className="flex items-start justify-between gap-2">
@@ -1292,11 +1337,11 @@ function EventsPage({ session, ctx, events, onCreateEvent, onJoinEvent, onSetWin
                       background: ev.category==="Admin" ? "var(--ink)" : ev.category==="Reward" ? "var(--warn-soft)" : "var(--accent-soft)",
                       color: ev.category==="Admin" ? "#fff" : ev.category==="Reward" ? "var(--warn)" : "var(--accent)"
                     }}>{ev.category} Event</span>
-                    <div className="font-display font-semibold mt-1.5">{ev.title}</div>
+                    <div className="font-display font-semibold mt-1.5 break-words">{ev.title}</div>
                   </div>
                   {ctx.isSuperAdmin && <button onClick={()=>onDeleteEvent(ev.id)} className="text-[11px] font-semibold" style={{ color:"var(--danger)" }}>Delete</button>}
                 </div>
-                <p className="text-sm mt-2" style={{ color:"var(--ink-soft)" }}>{ev.description}</p>
+                <p className="text-sm mt-2 break-words whitespace-pre-wrap" style={{ color:"var(--ink-soft)" }}>{ev.description}</p>
                 {ev.reward && <div className="text-[11px] font-semibold mt-2" style={{ color:"var(--accent)" }}>Reward: {ev.reward}{ev.rewardPoints>0?" ("+ev.rewardPoints+" pts)":""}</div>}
                 <div className="flex items-center justify-between mt-3 text-xs" style={{ color:"var(--ink-faint)" }}>
                   <span>Hosted by {ctx.nameFor(ev.host)}</span>
@@ -1329,8 +1374,8 @@ function EventsPage({ session, ctx, events, onCreateEvent, onJoinEvent, onSetWin
                 {EVENT_CATEGORIES.filter(c=> c!=="Admin" || ctx.isSuperAdmin).map(c=><option key={c} value={c}>{c}</option>)}
               </select>
             </Field>
-            <Field label="Title"><input required className={inputClass} style={inputStyle} value={title} onChange={e=>setTitle(e.target.value)} /></Field>
-            <Field label="Description"><textarea rows="3" className={inputClass} style={inputStyle} value={description} onChange={e=>setDescription(e.target.value)} /></Field>
+            <Field label="Title"><input required maxLength={100} className={inputClass} style={inputStyle} value={title} onChange={e=>setTitle(e.target.value)} /></Field>
+            <Field label="Description"><textarea rows="3" maxLength={600} className={inputClass} style={inputStyle} value={description} onChange={e=>setDescription(e.target.value)} /></Field>
             {category==="Reward" && (
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Reward description"><input className={inputClass} style={inputStyle} value={reward} onChange={e=>setReward(e.target.value)} placeholder="e.g. custom role" /></Field>
@@ -1740,7 +1785,7 @@ function Sidebar({ page, setPage, collapsed, setCollapsed, session, user, points
       </button>
       {window.ProfileCard ? <window.ProfileCard session={session} user={user} collapsed={collapsed} points={points} onOpenSelf={onOpenSelf} avatarSrc={avatarSrc} frameId={frameId} displayName={displayName} /> : null}
       <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto">
-        {NAV_ITEMS.map(item=>{
+        {window.NAV_ITEMS.map(item=>{
           const Icon = item.icon;
           const active = page===item.key;
           return (
@@ -1849,6 +1894,7 @@ function App(){
   const [decoratedPosts, setDecoratedPosts] = useState(()=>loadLS("fih_decorated", []));
   const [events, setEvents] = useState(()=>loadLS("fih_events", []));
   const [maintenanceOn, setMaintenanceOn] = useState(()=>loadLS("fih_maintenance", false));
+  const [commentGate, setCommentGate] = useState(()=>loadLS("fih_comment_gate", {})); // per-user: { lastTs, lockUntil }
 
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
@@ -1887,6 +1933,7 @@ function App(){
   useEffect(()=>saveLS("fih_decorated", decoratedPosts), [decoratedPosts]);
   useEffect(()=>saveLS("fih_events", events), [events]);
   useEffect(()=>saveLS("fih_maintenance", maintenanceOn), [maintenanceOn]);
+  useEffect(()=>saveLS("fih_comment_gate", commentGate), [commentGate]);
   useEffect(()=>{ saveLS("fih_theme", theme); document.documentElement.setAttribute("data-theme", theme); }, [theme]);
   useEffect(()=>saveLS("fih_lang", lang), [lang]);
 
@@ -2096,6 +2143,21 @@ function App(){
     logAudit((session||"Admin")+" renamed a level to \""+clean+"\".");
     pushToast("Level renamed.");
   }
+  function setLevelCover(scope, id, sublistId, url){
+    const clean = sanitizeText(url).slice(0,500);
+    if(scope==="home") setLevelsHome(prev=>prev.map(l=>l.id===id?{...l,coverUrl:clean||undefined}:l));
+    else if(scope==="fish") setLevelsFish(prev=>prev.map(l=>l.id===id?{...l,coverUrl:clean||undefined}:l));
+    else if(scope==="other") setOtherSublists(prev=>prev.map(s=>s.id===sublistId?{...s,levels:s.levels.map(l=>l.id===id?{...l,coverUrl:clean||undefined}:l)}:s));
+    logAudit((session||"Admin")+" updated a level's cover photo.");
+    pushToast(clean ? "Cover photo updated." : "Cover photo removed.");
+  }
+  function setLevelRank(scope, id, sublistId, newRank){
+    if(scope==="home") setLevelsHome(prev=>prev.map(l=>l.id===id?{...l,rank:newRank}:l));
+    else if(scope==="fish") setLevelsFish(prev=>prev.map(l=>l.id===id?{...l,rank:newRank}:l));
+    else if(scope==="other") setOtherSublists(prev=>prev.map(s=>s.id===sublistId?{...s,levels:s.levels.map(l=>l.id===id?{...l,rank:newRank}:l)}:s));
+    logAudit((session||"Admin")+" set a level's rank to #"+newRank+".");
+    pushToast("Rank updated.");
+  }
   function deleteLevel(scope, id, sublistId){
     if(scope==="home") setLevelsHome(prev=>prev.filter(l=>l.id!==id));
     else if(scope==="fish") setLevelsFish(prev=>prev.filter(l=>l.id!==id));
@@ -2155,7 +2217,21 @@ function App(){
       return { ...prev, [key]: next };
     });
   }
+  const COMMENT_MIN_GAP_MS = 10000; // minimum time between two comments from the same person
+  const COMMENT_LOCK_MS = 20*60*1000; // lock duration if they post faster than that
   function addComment(c){
+    const now = Date.now();
+    const gate = commentGate[c.author] || {};
+    if(gate.lockUntil && gate.lockUntil > now){
+      pushToast("You're commenting too fast — try again in "+Math.ceil((gate.lockUntil-now)/60000)+" min.");
+      return;
+    }
+    if(gate.lastTs && (now-gate.lastTs) < COMMENT_MIN_GAP_MS){
+      setCommentGate(prev=>({ ...prev, [c.author]: { lastTs: now, lockUntil: now+COMMENT_LOCK_MS } }));
+      pushToast("You're commenting too fast — locked for 20 minutes.");
+      return;
+    }
+    setCommentGate(prev=>({ ...prev, [c.author]: { lastTs: now, lockUntil: 0 } }));
     const clean = { ...c, text:sanitizeText(c.text) };
     setComments(prev=>[...prev, clean]);
     pushToast("Comment posted!");
@@ -2242,13 +2318,13 @@ function App(){
     onBanToggle: (name, banned)=> banned ? banUserGlobal(name) : unbanUserGlobal(name),
     onUpdateProfile: updateProfile, onSubmitGdStats: submitGdStats,
     activityFeed, submissions,
-    comments, onAddComment: addComment, onDeleteComment: deleteComment,
+    comments, onAddComment: addComment, onDeleteComment: deleteComment, commentGate,
     likes, onToggleLike: toggleLike,
     avatarSrc: (name)=> (users[name] && users[name].avatar) || undefined,
     nameFor: (name)=> (users[name] && users[name].displayName) || name,
     onAdminSetPoints: adminSetPoints, onAdminSetCollabPoints: adminSetCollabPoints,
     onAdminRenameUser: adminRenameUser, onAdminBanWithReason: adminBanWithReason,
-    onDeleteLevel: deleteLevel, onDeleteCollab: deleteCollabAdmin, onDeleteUser: deleteUserAdmin,
+    onDeleteLevel: deleteLevel, onDeleteCollab: deleteCollabAdmin, onDeleteUser: deleteUserAdmin, onSetLevelCover: setLevelCover, onSetLevelRank: setLevelRank,
     onMarkCollabComplete: markCollabComplete, onRenameLevel: renameLevel, onRenameSubmission: renameSubmission,
     onDeleteDecoratedPost: deleteDecoratedPost, pushToast,
   };

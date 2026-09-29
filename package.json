@@ -1,0 +1,11 @@
+{
+  "name": "fih-community",
+  "private": true,
+  "description": "FIH Community site. assets/js/main.js is BUILT from assets/js/*.jsx - edit the .jsx files, then run npm run build.",
+  "scripts": {
+    "build": "esbuild assets/js/main.jsx --bundle --minify --jsx=automatic --alias:react/jsx-runtime=./build/jsx-shim.js --target=es2019 --outfile=assets/js/main.js --log-level=warning"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}
