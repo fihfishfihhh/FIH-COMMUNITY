@@ -51,7 +51,10 @@ const I18N = {
 
 /* ---------------------------------- seed data ---------------------------------- */
 const DIFF_ORDER = ["Easy Demon","Medium Demon","Hard Demon","Insane Demon","Extreme Demon"];
-const DIFF_POINTS = { "Easy Demon":50, "Medium Demon":100, "Hard Demon":150, "Insane Demon":250, "Extreme Demon":400, "Challenge":80, "Platformer":80 };
+// Pointercrate-style top tiers shown above the lists and available to admins / new-level submissions.
+const TOP_TIERS = ["Top 1 (Pointercrate)","Top 10 (Pointercrate)","Top 25 (Pointercrate)","Top 50 (Pointercrate)","Top 100 (Pointercrate)"];
+const LIST_TIERS = ["Top 1 (Pointercrate)","Near Top 1 (Pointercrate)","Top 10 (Pointercrate)","Top 25 (Pointercrate)","Top 50 (Pointercrate)","Top 100 (Pointercrate)","High Tier Extreme Demon","High Extreme Demon","Extreme Demon","Medium Extreme Demon","Low Extreme Demon","Insane Demon","High Medium Demon","Hard Demon","Hard Demon (PC)","Medium Demon","Easy Demon","Low Easy Demon","Challenge","Platformer"];
+const DIFF_POINTS = { "Easy Demon":50, "Medium Demon":100, "Hard Demon":150, "Insane Demon":250, "Extreme Demon":400, "Challenge":80, "Platformer":80, "Top 1 (Pointercrate)":600, "Top 10 (Pointercrate)":560, "Top 25 (Pointercrate)":530, "Top 50 (Pointercrate)":510, "Top 100 (Pointercrate)":490 };
 const DIFF_COLOR = {
   "Easy Demon": { fg:"#1f9d6f", bg:"var(--success-soft)" },
   "Medium Demon": { fg:"#2f6fd6", bg:"#e8f0fd" },
@@ -68,6 +71,11 @@ const DIFF_COLOR = {
   "Low Extreme Demon": { fg:"#c9821c", bg:"var(--warn-soft)" },
   "Hard Demon (PC)": { fg:"#c9821c", bg:"var(--warn-soft)" },
   "Low Easy Demon": { fg:"#1f9d6f", bg:"var(--success-soft)" },
+  "Top 1 (Pointercrate)": { fg:"#7a3cff", bg:"var(--extreme-soft)" },
+  "Top 10 (Pointercrate)": { fg:"#7a3cff", bg:"var(--extreme-soft)" },
+  "Top 25 (Pointercrate)": { fg:"#d13a52", bg:"var(--danger-soft)" },
+  "Top 50 (Pointercrate)": { fg:"#d13a52", bg:"var(--danger-soft)" },
+  "Top 100 (Pointercrate)": { fg:"#c9821c", bg:"var(--warn-soft)" },
   "Main Level": { fg:"#1f9d6f", bg:"var(--success-soft)" },
 };
 const ROLE_OPTIONS_HELP = ["Playtester","Verifier","Decorator","Layout Builder","Other"];
@@ -336,25 +344,25 @@ function Field({ label, children }){
 const inputClass = "w-full rounded-lg px-3 py-2 text-sm bg-transparent";
 const inputStyle = { border:"1px solid var(--line-strong)", color:"var(--ink)" };
 
-function Modal({ title, onClose, children, wide, z, hideClose }){
-  // Scrolling lives on this outer layer only (no align-items:center here) —
-  // centering a flex item taller than the viewport traps its top/bottom
-  // outside the scrollable area, which is what made some modals unreachable
-  // by scrolling ("can't pull up to see...").
-  return (
+function Modal({ title, onClose, children, wide, full, z, hideClose }){
+  // Rendered through a portal into <body>. The page content sits inside an element that keeps a CSS
+  // transform after its fade-in animation, and a transformed ancestor becomes the containing block
+  // for position:fixed — which clipped every modal to the page's height. Outside it, "fixed" is
+  // relative to the real screen again.
+  const tree = (
     <div className={"fixed inset-0 "+(z||"z-50")+" overflow-y-auto backdrop-blur-sm"} style={{ background:"rgba(10,10,14,0.5)" }} onClick={hideClose ? undefined : onClose}>
-      <div className="min-h-full flex items-start sm:items-center justify-center p-4">
-        <div onClick={(e)=>e.stopPropagation()} className={"w-full "+(wide?"max-w-xl":"max-w-sm")+" rounded-2xl my-8 modal-pop backdrop-blur-xl"} style={{ background:"var(--glass-bg-strong)", border:"1px solid var(--line)" }}>
-          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom:"1px solid var(--line)" }}>
-            <h2 className="font-display font-semibold text-lg">{title}</h2>
-            {!hideClose && <button onClick={onClose} aria-label="Close" style={{ color:"var(--ink-soft)" }}><IconX size={20}/></button>}
+      <div className={"min-h-full flex items-start sm:items-center justify-center "+(full?"p-2 sm:p-4":"p-4")}>
+        <div onClick={(e)=>e.stopPropagation()} className={"w-full "+(full?"max-w-6xl":wide?"max-w-xl":"max-w-sm")+" rounded-2xl my-4 sm:my-8 modal-pop backdrop-blur-xl"} style={{ background:"var(--glass-bg-strong)", border:"1px solid var(--line)" }}>
+          <div className="flex items-center justify-between px-5 py-4 gap-3" style={{ borderBottom:"1px solid var(--line)" }}>
+            <h2 className="font-display font-semibold text-lg min-w-0">{title}</h2>
+            {!hideClose && <button onClick={onClose} aria-label="Close" className="shrink-0" style={{ color:"var(--ink-soft)" }}><IconX size={20}/></button>}
           </div>
-          {/* Own scroll + cap as a second safety net (e.g. a phone with the keyboard open). */}
-          <div className="p-5 max-h-[75vh] overflow-y-auto">{children}</div>
+          <div className={"p-5 overflow-y-auto "+(full?"max-h-[calc(100vh-8rem)]":"max-h-[75vh]")}>{children}</div>
         </div>
       </div>
     </div>
   );
+  return ReactDOM.createPortal(tree, document.body);
 }
 function EmptyState({ text }){
   return <div className="text-sm rounded-xl px-4 py-8 text-center" style={{ color:"var(--ink-faint)", border:"1px dashed var(--line-strong)" }}>{text}</div>;
@@ -507,7 +515,95 @@ function LazyVideo(){
     </button>
   );
 }
+function sanitizeImageSrc(v){
+  v = typeof v==="string" ? v.trim() : "";
+  if(/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(v) && v.length<600000) return v;
+  if(/^https?:\/\//i.test(v) && v.length<=500) return v;
+  return "";
+}
+function cssUrl(u){ return 'url("'+String(u).replace(/["\\\n\r]/g, c=>encodeURIComponent(c))+'")'; }
+function readImageFile(file, cb, maxW=800){
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxW/img.width);
+      const c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(img.width*scale)); c.height = Math.max(1, Math.round(img.height*scale));
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      cb(c.toDataURL("image/jpeg", 0.82));
+    };
+    img.onerror = () => cb("");
+    img.src = reader.result;
+  };
+  reader.onerror = () => cb("");
+  reader.readAsDataURL(file);
+}
+function ImagePicker({ label, value, onChange }){
+  const fileRef = useRef(null);
+  const isData = typeof value==="string" && value.startsWith("data:");
+  return (
+    <div className="mb-4">
+      {label && <span className="block text-xs font-semibold mb-1.5" style={{ color:"var(--ink-soft)" }}>{label}</span>}
+      <div className="flex gap-2">
+        <input className={inputClass} style={inputStyle} placeholder="https://... (image URL)" value={isData ? "" : (value||"")} onChange={e=>onChange(e.target.value)} />
+        <Button type="button" variant="outline" size="sm" onClick={()=>fileRef.current && fileRef.current.click()}>Upload</Button>
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e=>{ const f=e.target.files && e.target.files[0]; e.target.value=""; if(f) readImageFile(f, (d)=>{ if(d) onChange(d); }); }} />
+      </div>
+      {value ? (
+        <div className="mt-2 relative aspect-video rounded-lg overflow-hidden" style={{ backgroundImage:cssUrl(value), backgroundSize:"cover", backgroundPosition:"center", border:"1px solid var(--line)" }}>
+          <button type="button" onClick={()=>onChange("")} className="absolute top-2 right-2 text-[11px] font-semibold px-2 py-1 rounded-md" style={{ background:"rgba(0,0,0,0.6)", color:"#fff" }}>Remove</button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+function CoverModal({ level, onSubmit, onClose }){
+  const [val, setVal] = useState(level.coverUrl||"");
+  return (
+    <Modal z="z-[55]" title="Level cover photo" onClose={onClose} wide>
+      <form onSubmit={(e)=>{ e.preventDefault(); onSubmit(val); onClose(); }}>
+        <ImagePicker label="Upload a file or paste an image URL (leave empty to remove)" value={val} onChange={setVal} />
+        <div className="flex gap-2"><Button type="submit" variant="primary">Save</Button><Button type="button" variant="outline" onClick={onClose}>Cancel</Button></div>
+      </form>
+    </Modal>
+  );
+}
+function DifficultyModal({ level, onSubmit, onClose }){
+  const [val, setVal] = useState(level.difficulty);
+  const opts = LIST_TIERS.includes(level.difficulty) ? LIST_TIERS : [level.difficulty, ...LIST_TIERS];
+  return (
+    <Modal z="z-[55]" title="Edit difficulty" onClose={onClose}>
+      <form onSubmit={(e)=>{ e.preventDefault(); onSubmit(val); onClose(); }}>
+        <Field label="Difficulty / tier">
+          <select className={inputClass} style={inputStyle} value={val} onChange={e=>setVal(e.target.value)}>{opts.map(d=><option key={d} value={d}>{d}</option>)}</select>
+        </Field>
+        <div className="flex gap-2"><Button type="submit" variant="primary">Save</Button><Button type="button" variant="outline" onClick={onClose}>Cancel</Button></div>
+      </form>
+    </Modal>
+  );
+}
+function PersonChip({ label, name, ctx }){
+  const exists = !!(ctx.users && ctx.users[name]);
+  const inner = (
+    <>
+      <Avatar name={name||"?"} size={34} src={exists ? ctx.avatarSrc(name) : undefined} />
+      <div className="text-left min-w-0">
+        <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color:"var(--ink-faint)" }}>{label}</div>
+        <div className="text-sm font-semibold truncate">{exists && ctx.nameFor ? ctx.nameFor(name) : name}</div>
+      </div>
+    </>
+  );
+  const cls = "flex items-center gap-2.5 rounded-xl px-3 py-2 min-w-0";
+  return exists
+    ? <button onClick={()=>ctx.onOpenProfile(name)} className={cls+" lift-hover"} style={{ background:"var(--bg-soft)" }}>{inner}</button>
+    : <div className={cls} style={{ background:"var(--bg-soft)" }}>{inner}</div>;
+}
 function ListControls({ sortBy, setSortBy, diffFilter, setDiffFilter, difficulties }){
+  // Tier chips sit above the list: the Pointercrate top tiers always show, other tiers show when a level uses them.
+  const shown = LIST_TIERS.filter(t=> TOP_TIERS.includes(t) || difficulties.includes(t));
+  const extra = difficulties.filter(d=>!LIST_TIERS.includes(d));
+  const chips = ["All", ...shown, ...extra];
   return (
     <div className="flex flex-wrap items-center gap-2 mb-4">
       <select value={sortBy} onChange={e=>setSortBy(e.target.value)} className="text-xs font-semibold rounded-lg px-2.5 py-2 bg-transparent" style={{ border:"1px solid var(--line-strong)", color:"var(--ink-soft)" }}>
@@ -515,10 +611,11 @@ function ListControls({ sortBy, setSortBy, diffFilter, setDiffFilter, difficulti
         <option value="points">Sort: Points (highest)</option>
         <option value="date">Sort: Date verified (newest)</option>
       </select>
-      <select value={diffFilter} onChange={e=>setDiffFilter(e.target.value)} className="text-xs font-semibold rounded-lg px-2.5 py-2 bg-transparent" style={{ border:"1px solid var(--line-strong)", color:"var(--ink-soft)" }}>
-        <option value="All">All difficulties</option>
-        {difficulties.map(d=><option key={d} value={d}>{d}</option>)}
-      </select>
+      <div className="flex flex-wrap gap-1.5 w-full">
+        {chips.map(d=>(
+          <button key={d} onClick={()=>setDiffFilter(d)} className="text-[11px] font-semibold px-2.5 py-1 rounded-full" style={{ background: diffFilter===d ? "var(--accent)" : "var(--bg-soft)", color: diffFilter===d ? "#fff" : "var(--ink-soft)", border:"1px solid var(--line)" }}>{d==="All" ? "All difficulties" : d}</button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -588,7 +685,7 @@ function LevelCard({ level, ctx, scope, sublistId, index=0 }){
   const likeCount = (ctx.likes[likeKey]||[]).length;
   return (
     <div className="rounded-xl overflow-hidden flex flex-col lift-hover stagger-item" style={{ background:"var(--bg-card)", border:"1px solid var(--line)", animationDelay:(index*0.05)+"s" }}>
-      <div className="aspect-video flex items-center justify-center relative" style={level.coverUrl ? { backgroundImage:"url("+level.coverUrl+")", backgroundSize:"cover", backgroundPosition:"center" } : { background:"var(--bg-soft)" }}>
+      <div className="aspect-video flex items-center justify-center relative" style={level.coverUrl ? { backgroundImage:cssUrl(level.coverUrl), backgroundSize:"cover", backgroundPosition:"center" } : { background:"var(--bg-soft)" }}>
         {level.special && <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full z-10" style={{ background:"var(--ink)", color:"var(--bg)" }}>Special</span>}
         <VerifiedBadge verified={level.verified} />
         {level.videoUrl ? (
@@ -654,51 +751,59 @@ function LevelDetailModal({ level, scope, sublistId, ctx, onClose }){
   const canRename = ctx.isSuperAdmin || (originCollab && originCollab.host===ctx.session);
   const [action, setAction] = useState(null);
   return (
-    <Modal title={level.name} onClose={onClose} wide>
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <DifficultyBadge difficulty={level.difficulty}/>
-        <VerifiedTag verified={level.verified} />
-        {level.special && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background:"var(--ink)", color:"var(--bg)" }}>Special</span>}
+    <Modal title={level.name} onClose={onClose} full>
+      <div className="grid lg:grid-cols-[1.25fr_1fr] gap-6 items-start">
+        <div className="min-w-0">
+          <div className="aspect-video rounded-xl overflow-hidden relative flex items-center justify-center" style={level.coverUrl ? { backgroundImage:cssUrl(level.coverUrl), backgroundSize:"cover", backgroundPosition:"center", border:"1px solid var(--line)" } : { background:"var(--bg-soft)", border:"1px solid var(--line)" }}>
+            {level.videoUrl ? (
+              <a href={level.videoUrl} target="_blank" rel="noopener noreferrer" className="w-16 h-16 rounded-full flex items-center justify-center lift-hover" style={{ background:"var(--bg-card)", color:"var(--ink)", border:"1px solid var(--line-strong)" }} aria-label="Watch verification video"><IconPlay size={22}/></a>
+            ) : <div className="text-xs" style={{ color:"var(--ink-faint)" }}>No thumbnail yet</div>}
+          </div>
+          <div className="flex items-center gap-2 mt-4 flex-wrap">
+            <DifficultyBadge difficulty={level.difficulty}/>
+            <VerifiedTag verified={level.verified} />
+            {level.special && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background:"var(--ink)", color:"var(--bg)" }}>Special</span>}
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3 mt-4">
+            <PersonChip label="Creator" name={level.creator} ctx={ctx} />
+            <PersonChip label="Verifier" name={level.verifier} ctx={ctx} />
+          </div>
+          <div className="text-sm space-y-1 mt-4" style={{ color:"var(--ink-soft)" }}>
+            <div>Level ID: <span className="font-mono" style={{ color:"var(--ink)" }}>{level.levelId}</span></div>
+            <div>Ranking: <span style={{ color:"var(--ink)" }}>Top {level.rank} in {scope==="fish"?"Fish List":scope==="other"?"Other List":"the list"}</span></div>
+            <div>Points: <span style={{ color:"var(--ink)" }}>{level.verified ? level.points : "Awarded once verified"}</span></div>
+            {level.reward && <div>Reward: <span style={{ color:"var(--ink)" }}>{level.reward}</span></div>}
+            {level.videoUrl && <div><a href={level.videoUrl} target="_blank" rel="noopener noreferrer" className="font-semibold" style={{ color:"var(--accent)" }}>Watch verification video</a></div>}
+          </div>
+        </div>
+        <div className="min-w-0">
+          <div className="flex items-center gap-3 flex-wrap mb-4">
+            <button onClick={()=>ctx.session && ctx.onToggleLike(likeKey)} className="text-xs font-semibold flex items-center gap-1.5" style={{ color: likedByMe ? "var(--danger)" : "var(--ink-soft)" }}>
+              <IconHeart filled={likedByMe} size={14}/> {likeCount} {likeCount===1?"like":"likes"}
+            </button>
+            {ctx.canEditLists && (
+              <button onClick={()=>ctx.onToggleVerified(scope, level.id, sublistId)} className="text-xs font-semibold" style={{ color:"var(--accent)" }}>
+                {level.verified ? "Mark as not verified" : "Mark as verified by mod"}
+              </button>
+            )}
+            {canRename && <button onClick={()=>setAction({ type:"rename" })} className="text-xs font-semibold" style={{ color:"var(--ink-soft)" }}>Rename level</button>}
+            {ctx.canEditLists && <button onClick={()=>setAction({ type:"cover" })} className="text-xs font-semibold" style={{ color:"var(--ink-soft)" }}>Set cover photo</button>}
+            {ctx.canEditLists && <button onClick={()=>setAction({ type:"rank" })} className="text-xs font-semibold" style={{ color:"var(--ink-soft)" }}>Edit rank</button>}
+            {ctx.canEditLists && <button onClick={()=>setAction({ type:"difficulty" })} className="text-xs font-semibold" style={{ color:"var(--ink-soft)" }}>Edit difficulty</button>}
+            {ctx.isSuperAdmin && <button onClick={()=>setAction({ type:"delete" })} className="text-xs font-semibold" style={{ color:"var(--danger)" }}>Delete level</button>}
+          </div>
+          <CommentSection targetType="level" targetId={level.id} ctx={ctx} />
+        </div>
       </div>
-      <div className="text-sm space-y-1 mb-4" style={{ color:"var(--ink-soft)" }}>
-        <div>Creator: <span style={{ color:"var(--ink)" }}>{level.creator}</span></div>
-        <div>Verifier: <span style={{ color:"var(--ink)" }}>{level.verifier}</span></div>
-        <div>Level ID: <span className="font-mono" style={{ color:"var(--ink)" }}>{level.levelId}</span></div>
-        <div>Ranking: <span style={{ color:"var(--ink)" }}>Top {level.rank} in {scope==="fish"?"Fish List":scope==="other"?"Other List":"the list"}</span></div>
-        <div>Points: <span style={{ color:"var(--ink)" }}>{level.verified ? level.points : "Awarded once verified"}</span></div>
-        {level.reward && <div>Reward: <span style={{ color:"var(--ink)" }}>{level.reward}</span></div>}
-        {level.videoUrl && <div><a href={level.videoUrl} target="_blank" rel="noopener noreferrer" className="font-semibold" style={{ color:"var(--accent)" }}>Watch verification video</a></div>}
-      </div>
-      <div className="flex items-center gap-3 flex-wrap mb-2">
-        <button onClick={()=>ctx.session && ctx.onToggleLike(likeKey)} className="text-xs font-semibold flex items-center gap-1.5" style={{ color: likedByMe ? "var(--danger)" : "var(--ink-soft)" }}>
-          <IconHeart filled={likedByMe} size={14}/> {likeCount} {likeCount===1?"like":"likes"}
-        </button>
-        {ctx.canEditLists && (
-          <button onClick={()=>ctx.onToggleVerified(scope, level.id, sublistId)} className="text-xs font-semibold" style={{ color:"var(--accent)" }}>
-            {level.verified ? "Mark as not verified" : "Mark as verified by mod"}
-          </button>
-        )}
-        {canRename && (
-          <button onClick={()=>setAction({ type:"rename" })} className="text-xs font-semibold" style={{ color:"var(--ink-soft)" }}>Rename level</button>
-        )}
-        {ctx.canEditLists && (
-          <button onClick={()=>setAction({ type:"cover" })} className="text-xs font-semibold" style={{ color:"var(--ink-soft)" }}>Set cover photo</button>
-        )}
-        {ctx.canEditLists && (
-          <button onClick={()=>setAction({ type:"rank" })} className="text-xs font-semibold" style={{ color:"var(--ink-soft)" }}>Edit rank</button>
-        )}
-        {ctx.isSuperAdmin && (
-          <button onClick={()=>setAction({ type:"delete" })} className="text-xs font-semibold" style={{ color:"var(--danger)" }}>Delete level</button>
-        )}
-      </div>
-      <CommentSection targetType="level" targetId={level.id} ctx={ctx} />
       {action && action.type==="rename" && (
         <PromptModal z="z-[55]" title="Rename level" label="New level name" defaultValue={level.name}
           onSubmit={(v)=>{ if(v.trim()) ctx.onRenameLevel(scope, level.id, sublistId, v.trim()); }} onClose={()=>setAction(null)} />
       )}
       {action && action.type==="cover" && (
-        <PromptModal z="z-[55]" title="Set cover photo" label="Image URL (leave blank to remove)" defaultValue={level.coverUrl||""} placeholder="https://..."
-          onSubmit={(v)=>ctx.onSetLevelCover(scope, level.id, sublistId, v.trim())} onClose={()=>setAction(null)} />
+        <CoverModal level={level} onSubmit={(v)=>ctx.onSetLevelCover(scope, level.id, sublistId, v)} onClose={()=>setAction(null)} />
+      )}
+      {action && action.type==="difficulty" && (
+        <DifficultyModal level={level} onSubmit={(v)=>ctx.onSetLevelDifficulty(scope, level.id, sublistId, v)} onClose={()=>setAction(null)} />
       )}
       {action && action.type==="rank" && (
         <PromptModal z="z-[55]" title="Edit rank" label="New rank (position number)" defaultValue={String(level.rank)}
@@ -840,8 +945,20 @@ function ChecklistModal({ submission, onClose, onToggleChecklist, onDecide, onTo
   return (
     <Modal title={"Inspect: "+submission.name} onClose={onClose} wide>
       <div className="text-sm mb-4 space-y-1" style={{ color:"var(--ink-soft)" }}>
-        <div>Player: <span style={{ color:"var(--ink)" }}>{submission.playerName}</span></div>
-        <div>Percentage: <span style={{ color:"var(--ink)" }}>{submission.percentage}%</span></div>
+        {submission.kind==="level" ? (
+          <>
+            <div className="font-semibold" style={{ color:"var(--accent)" }}>New level for the list</div>
+            <div>Creator: <span style={{ color:"var(--ink)" }}>{submission.creator}</span></div>
+            <div>Verifier: <span style={{ color:"var(--ink)" }}>{submission.verifier}</span></div>
+            <div>Level ID: <span className="font-mono" style={{ color:"var(--ink)" }}>{submission.levelId||"—"}</span></div>
+            {submission.thumbnail && <div className="aspect-video rounded-lg mt-2" style={{ backgroundImage:cssUrl(submission.thumbnail), backgroundSize:"cover", backgroundPosition:"center", border:"1px solid var(--line)" }} />}
+          </>
+        ) : (
+          <>
+            <div>Player: <span style={{ color:"var(--ink)" }}>{submission.playerName}</span></div>
+            <div>Percentage: <span style={{ color:"var(--ink)" }}>{submission.percentage}%</span></div>
+          </>
+        )}
         <div className="pt-1">Difficulty: <DifficultyBadge difficulty={submission.difficulty} /></div>
         <div className="flex gap-3 pt-1">
           <a href={submission.videoUrl} target="_blank" rel="noopener noreferrer" className="font-semibold" style={{ color:"var(--accent)" }}>Watch video</a>
@@ -858,7 +975,7 @@ function ChecklistModal({ submission, onClose, onToggleChecklist, onDecide, onTo
         ))}
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button variant="primary" onClick={()=>{ onDecide(submission.id, "Approved"); onClose(); }}>Approve</Button>
+        <Button variant="primary" onClick={()=>{ onDecide(submission.id, "Approved"); onClose(); }}>{submission.kind==="level" ? "Approve & add to list" : "Approve"}</Button>
         <Button variant="danger" onClick={()=>{ onDecide(submission.id, "Rejected"); onClose(); }}>Reject</Button>
         <Button variant={submission.flagged ? "soft" : "outline"} onClick={()=>onToggleFlag(submission.id)}>{submission.flagged ? "Clear flag" : "Flag as suspicious"}</Button>
       </div>
@@ -874,9 +991,15 @@ function SubmitPage({ session, submissions, addSubmission, canModerateSubs, onDe
   const [rawFootageUrl,setRawFootageUrl]=useState("");
   const [inspecting,setInspecting]=useState(null);
   const [renamingId,setRenamingId]=useState(null);
+  const [mode,setMode]=useState("run"); // "run" = my completion of a level, "level" = a new level for the list
+  const [creator,setCreator]=useState(session||"");
+  const [verifier,setVerifier]=useState("");
+  const [levelIdStr,setLevelIdStr]=useState("");
+  const [lvlDifficulty,setLvlDifficulty]=useState("Extreme Demon");
+  const [thumb,setThumb]=useState("");
 
   // ids are "S"+Date.now(), so their own timestamp doubles as a submission log — no extra field needed.
-  const mySubs = submissions.filter(s=>s.submittedBy===session);
+  const mySubs = submissions.filter(s=>s.submittedBy===session && (s.kind||"run")===mode);
   const lastSubTs = mySubs.length ? Math.max(...mySubs.map(s=>Number(s.id.slice(1))||0)) : 0;
   const canSubmitToday = !lastSubTs || (Date.now()-lastSubTs) >= 86400000;
 
@@ -884,6 +1007,18 @@ function SubmitPage({ session, submissions, addSubmission, canModerateSubs, onDe
     e.preventDefault();
     if(!session || !name.trim() || !videoUrl.trim()) return;
     if(!canSubmitToday){ ctx.pushToast("You can only submit one level every 24 hours."); return; }
+    if(mode==="level"){
+      if(!creator.trim() || !verifier.trim()){ ctx.pushToast("Creator and verifier are required."); return; }
+      if(!/^https?:\/\//i.test(videoUrl.trim())){ ctx.pushToast("Video link must start with http:// or https://"); return; }
+      addSubmission({
+        id:"S"+Date.now(), kind:"level", name:name.trim(), playerName:creator.trim(), creator:sanitizeText(creator.trim()).slice(0,40), verifier:sanitizeText(verifier.trim()).slice(0,40),
+        levelId:Number(levelIdStr.replace(/\D/g,""))||0, difficulty:lvlDifficulty, videoUrl:videoUrl.trim(), thumbnail:sanitizeImageSrc(thumb), rawFootageUrl:"", percentage:100,
+        submittedBy:session, status:"Pending", flagged:false, checklist:{ footage:false, mic:false, fps:false, client:false },
+        date:new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})
+      });
+      setName(""); setVideoUrl(""); setVerifier(""); setLevelIdStr(""); setThumb("");
+      return;
+    }
     addSubmission({
       id:"S"+Date.now(), name:name.trim(), playerName:(playerName.trim()||session), percentage:Number(percentage)||0,
       difficulty, videoUrl:videoUrl.trim(), rawFootageUrl:rawFootageUrl.trim(), submittedBy:session, status:"Pending", flagged:false,
@@ -903,20 +1038,47 @@ function SubmitPage({ session, submissions, addSubmission, canModerateSubs, onDe
         <p className="text-sm mb-5" style={{ color:"var(--ink-soft)" }}>Levels enter the review queue before points are awarded.</p>
         {!session ? <EmptyState text="Sign in to submit a level." /> : (
           <form onSubmit={submit}>
+            <div className="flex gap-1.5 mb-4 p-1 rounded-lg" style={{ background:"var(--bg-soft)" }}>
+              {[["run","Submit a run"],["level","Submit a level to the list"]].map(([k,lbl])=>(
+                <button type="button" key={k} onClick={()=>setMode(k)} className="flex-1 text-xs font-semibold px-2 py-2 rounded-md" style={{ background: mode===k ? "var(--bg-card)" : "transparent", color: mode===k ? "var(--ink)" : "var(--ink-soft)", boxShadow: mode===k ? "0 1px 3px rgba(0,0,0,0.25)" : "none" }}>{lbl}</button>
+              ))}
+            </div>
+            {mode==="level" && <p className="text-xs mb-4" style={{ color:"var(--ink-soft)" }}>New levels are reviewed by mods. Once approved, the level goes straight onto the FIH list on the homepage.</p>}
             {!canSubmitToday && <div className="text-xs font-semibold mb-3" style={{ color:"var(--warn)" }}>You've already submitted today — come back tomorrow.</div>}
             <Field label="Level name"><input required className={inputClass} style={inputStyle} value={name} onChange={e=>setName(e.target.value)} placeholder="Level name" /></Field>
-            <Field label="Player name"><input className={inputClass} style={inputStyle} value={playerName} onChange={e=>setPlayerName(e.target.value)} placeholder={session} /></Field>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Percentage achieved"><input type="number" min="0" max="100" className={inputClass} style={inputStyle} value={percentage} onChange={e=>setPercentage(e.target.value)} /></Field>
-              <Field label="Difficulty">
-                <select className={inputClass} style={inputStyle} value={difficulty} onChange={e=>setDifficulty(e.target.value)}>
-                  {DIFF_ORDER.map(d=><option key={d} value={d}>{d}</option>)}
-                </select>
-              </Field>
-            </div>
-            <Field label="Video link (YouTube/Twitch)"><input required className={inputClass} style={inputStyle} value={videoUrl} onChange={e=>setVideoUrl(e.target.value)} placeholder="https://youtube.com/..." /></Field>
-            <Field label="Raw footage link (Drive/Mega)"><input className={inputClass} style={inputStyle} value={rawFootageUrl} onChange={e=>setRawFootageUrl(e.target.value)} placeholder="https://drive.google.com/..." /></Field>
-            <Button type="submit" variant="primary" className="w-full">Submit for review</Button>
+            {mode==="run" ? (
+              <>
+                <Field label="Player name"><input className={inputClass} style={inputStyle} value={playerName} onChange={e=>setPlayerName(e.target.value)} placeholder={session} /></Field>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Percentage achieved"><input type="number" min="0" max="100" className={inputClass} style={inputStyle} value={percentage} onChange={e=>setPercentage(e.target.value)} /></Field>
+                  <Field label="Difficulty">
+                    <select className={inputClass} style={inputStyle} value={difficulty} onChange={e=>setDifficulty(e.target.value)}>
+                      {DIFF_ORDER.map(d=><option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </Field>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Creator"><input required className={inputClass} style={inputStyle} value={creator} onChange={e=>setCreator(e.target.value)} /></Field>
+                  <Field label="Verifier"><input required className={inputClass} style={inputStyle} value={verifier} onChange={e=>setVerifier(e.target.value)} /></Field>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Level ID"><input inputMode="numeric" className={inputClass} style={inputStyle} value={levelIdStr} onChange={e=>setLevelIdStr(e.target.value)} placeholder="e.g. 147242375" /></Field>
+                  <Field label="Difficulty">
+                    <select className={inputClass} style={inputStyle} value={lvlDifficulty} onChange={e=>setLvlDifficulty(e.target.value)}>
+                      {LIST_TIERS.map(d=><option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </Field>
+                </div>
+              </>
+            )}
+            <Field label={mode==="level" ? "Verification video link (YouTube/Twitch)" : "Video link (YouTube/Twitch)"}><input required className={inputClass} style={inputStyle} value={videoUrl} onChange={e=>setVideoUrl(e.target.value)} placeholder="https://youtube.com/..." /></Field>
+            {mode==="run"
+              ? <Field label="Raw footage link (Drive/Mega)"><input className={inputClass} style={inputStyle} value={rawFootageUrl} onChange={e=>setRawFootageUrl(e.target.value)} placeholder="https://drive.google.com/..." /></Field>
+              : <ImagePicker label="Thumbnail (upload a file or paste a URL — optional)" value={thumb} onChange={setThumb} />}
+            <Button type="submit" variant="primary" className="w-full">{mode==="level" ? "Submit level for review" : "Submit for review"}</Button>
           </form>
         )}
       </div>
@@ -930,7 +1092,7 @@ function SubmitPage({ session, submissions, addSubmission, canModerateSubs, onDe
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="font-display font-semibold text-sm">{s.name}</div>
-                  <div className="text-xs mt-0.5" style={{ color:"var(--ink-soft)" }}>{s.difficulty} &middot; {s.percentage}% &middot; {s.date}</div>
+                  <div className="text-xs mt-0.5" style={{ color:"var(--ink-soft)" }}>{s.difficulty} &middot; {s.kind==="level" ? "New level" : s.percentage+"%"} &middot; {s.date}</div>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   {s.flagged && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background:"var(--danger)", color:"#fff" }}>FLAGGED</span>}
@@ -1330,16 +1492,16 @@ function EventsPage({ session, ctx, events, onCreateEvent, onJoinEvent, onSetWin
             // otherwise a host could just declare themselves the winner for free points.
             const canManage = session && (ctx.isSuperAdmin || (ev.category!=="Reward" && session===ev.host) || (ev.category==="Reward" && ctx.canModerateSubs));
             return (
-              <div key={ev.id} className="rounded-xl p-4 lift-hover stagger-item" style={{ background:"var(--bg-card)", border:"1px solid var(--line)", animationDelay:(i*0.06)+"s" }}>
+              <div key={ev.id} className="rounded-xl p-4 lift-hover stagger-item min-w-0" style={{ background:"var(--bg-card)", border:"1px solid var(--line)", animationDelay:(i*0.06)+"s" }}>
                 <div className="flex items-start justify-between gap-2">
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{
                       background: ev.category==="Admin" ? "var(--ink)" : ev.category==="Reward" ? "var(--warn-soft)" : "var(--accent-soft)",
                       color: ev.category==="Admin" ? "#fff" : ev.category==="Reward" ? "var(--warn)" : "var(--accent)"
                     }}>{ev.category} Event</span>
                     <div className="font-display font-semibold mt-1.5 break-words">{ev.title}</div>
                   </div>
-                  {ctx.isSuperAdmin && <button onClick={()=>onDeleteEvent(ev.id)} className="text-[11px] font-semibold" style={{ color:"var(--danger)" }}>Delete</button>}
+                  {ctx.isSuperAdmin && <button onClick={()=>onDeleteEvent(ev.id)} className="text-[11px] font-semibold shrink-0" style={{ color:"var(--danger)" }}>Delete</button>}
                 </div>
                 <p className="text-sm mt-2 break-words whitespace-pre-wrap" style={{ color:"var(--ink-soft)" }}>{ev.description}</p>
                 {ev.reward && <div className="text-[11px] font-semibold mt-2" style={{ color:"var(--accent)" }}>Reward: {ev.reward}{ev.rewardPoints>0?" ("+ev.rewardPoints+" pts)":""}</div>}
@@ -1448,7 +1610,7 @@ function DecoratedSharePage({ session, ctx, posts, onAddPost }){
 }
 
 /* ---------------------------------- auth / stats form ---------------------------------- */
-function GdStatsForm({ initial, onSubmit, onClose, mandatory, z }){
+function GdStatsForm({ initial, onSubmit, onClose, mandatory, z, admin }){
   const [displayName, setDisplayName] = useState(initial.displayName||"");
   const [gdUsername, setGdUsername] = useState(initial.gdUsername||"");
   const [stars, setStars] = useState(initial.stars||0);
@@ -1462,10 +1624,10 @@ function GdStatsForm({ initial, onSubmit, onClose, mandatory, z }){
     onClose();
   }
   return (
-    <Modal title="Player info" onClose={mandatory ? ()=>{} : onClose} hideClose={mandatory} wide z={z}>
-      <div className="text-xs font-semibold mb-4 rounded-lg px-3 py-2" style={{ background:"var(--warn-soft)", color:"var(--warn)" }}>
+    <Modal title={admin ? "Edit stats (admin)" : "Player info"} onClose={mandatory ? ()=>{} : onClose} hideClose={mandatory} wide z={z}>
+      {!admin && <div className="text-xs font-semibold mb-4 rounded-lg px-3 py-2" style={{ background:"var(--warn-soft)", color:"var(--warn)" }}>
         (Note: Neu may khong thanh that thi con ca khong thich may)
-      </div>
+      </div>}
       <form onSubmit={submit}>
         <Field label="Player name (will show on the web!)"><input required className={inputClass} style={inputStyle} value={displayName} onChange={e=>setDisplayName(e.target.value)} /></Field>
         <Field label="Username in game"><input required className={inputClass} style={inputStyle} value={gdUsername} onChange={e=>setGdUsername(e.target.value)} /></Field>
@@ -1478,7 +1640,9 @@ function GdStatsForm({ initial, onSubmit, onClose, mandatory, z }){
           <Field label="Creator point"><input type="number" min="0" className={inputClass} style={inputStyle} value={creatorPointsStat} onChange={e=>setCreatorPointsStat(e.target.value)} /></Field>
         </div>
         <Field label="Hardest"><input className={inputClass} style={inputStyle} value={hardestDemon} onChange={e=>setHardestDemon(e.target.value)} /></Field>
-        <p className="text-[11px] mb-4" style={{ color:"var(--danger)" }}>Updating unrealistic/fake stats compared to in-game data will lead to a PERMANENT BAN upon audit. Stats can only be updated once every 7 days.</p>
+        {admin
+          ? <p className="text-[11px] mb-4" style={{ color:"var(--ink-soft)" }}>Admin edit: saved right away, doesn't use up or reset the player's 7-day limit, and is recorded in the audit log.</p>
+          : <p className="text-[11px] mb-4" style={{ color:"var(--danger)" }}>Updating unrealistic/fake stats compared to in-game data will lead to a PERMANENT BAN upon audit. Stats can only be updated once every 7 days.</p>}
         <Button type="submit" variant="primary" className="w-full">Save</Button>
       </form>
     </Modal>
@@ -1504,6 +1668,7 @@ function ProfileModal({ username, ctx, onClose }){
   const [urlDraft, setUrlDraft] = useState("");
   const [action, setAction] = useState(null);
   const [editingStats, setEditingStats] = useState(false);
+  const [adminEditingStats, setAdminEditingStats] = useState(false);
   const fileRef = useRef(null);
   const changesUsed = u ? (u.avatarChanges||0) : 0;
   const changesLeft = Math.max(0, 3-changesUsed);
@@ -1599,6 +1764,11 @@ function ProfileModal({ username, ctx, onClose }){
             ) : (
               <div className="text-[11px]" style={{ color:"var(--ink-faint)" }}>You can update your stats again in {Math.max(1,Math.ceil(7-daysSinceUpdate))} day(s).</div>
             )}
+          </div>
+        )}
+        {ctx.isSuperAdmin && (
+          <div className="mt-3 pt-3" style={{ borderTop:"1px solid var(--line)" }}>
+            <Button size="sm" variant="outline" onClick={()=>setAdminEditingStats(true)}>Edit stats (admin)</Button>
           </div>
         )}
       </div>
@@ -1730,6 +1900,9 @@ function ProfileModal({ username, ctx, onClose }){
 
       {editingStats && (
         <GdStatsForm z="z-[55]" initial={u} onSubmit={(vals)=>ctx.onSubmitGdStats(username, vals)} onClose={()=>setEditingStats(false)} />
+      )}
+      {adminEditingStats && (
+        <GdStatsForm admin z="z-[55]" initial={u} onSubmit={(vals)=>ctx.onSubmitGdStats(username, vals, true)} onClose={()=>setAdminEditingStats(false)} />
       )}
       {action && action.type==="rename" && (
         <PromptModal z="z-[55]" title="Rename user" label={"New display name for "+username} defaultValue={u.displayName||username}
@@ -1958,7 +2131,7 @@ function App(){
     setUsers(prev=>({ ...prev, [username]: { ...prev[username], ...clean } }));
     pushToast("Profile updated.");
   }
-  function submitGdStats(username, values){
+  function submitGdStats(username, values, byAdmin){
     const clean = {
       displayName: sanitizeText(values.displayName||username).slice(0,40),
       gdUsername: sanitizeText(values.gdUsername).slice(0,40),
@@ -1967,10 +2140,11 @@ function App(){
       demonsBeaten: Math.max(0, Number(values.demonsBeaten)||0),
       hardestDemon: sanitizeText(values.hardestDemon).slice(0,60),
       creatorPointsStat: Math.max(0, Number(values.creatorPointsStat)||0),
-      lastStatUpdate: Date.now(),
     };
+    if(!byAdmin) clean.lastStatUpdate = Date.now(); // admin edits don't touch the player's own 7-day limit
     setUsers(prev=>({ ...prev, [username]: { ...prev[username], ...clean } }));
-    pushToast("Stats updated!");
+    if(byAdmin) logAudit((session||"Admin")+" edited the Geometry Dash stats of "+username+".");
+    pushToast(byAdmin ? "Stats updated by admin." : "Stats updated!");
   }
 
   function addSubmission(s){
@@ -2095,6 +2269,18 @@ function App(){
     setSubmissions(prev=>prev.map(s=> s.id===id ? { ...s, status } : s));
     if(sub){
       logAudit((session||"Mod")+" "+(status==="Approved"?"approved":"rejected")+" \""+sub.name+"\" ("+sub.playerName+").");
+      if(status==="Approved" && sub.kind==="level"){
+        if(sub.status!=="Approved"){ // only add once, even if the decision is toggled
+          setLevelsHome(prev=>{
+            const nextRank = prev.reduce((m,l)=>Math.max(m,l.rank||0),0)+1;
+            return [...prev, { id:"FL"+Date.now(), rank:nextRank, name:sub.name, creator:sub.creator||sub.playerName, verifier:sub.verifier||"", levelId:sub.levelId||0, difficulty:sub.difficulty, points:DIFF_POINTS[sub.difficulty]||150, reward:"", special:false, date:new Date().toISOString(), verified:true, videoUrl:sub.videoUrl, coverUrl:sub.thumbnail||undefined }];
+          });
+          logActivity("\""+sub.name+"\" by "+(sub.creator||sub.playerName)+" was added to the list.");
+          celebrate();
+        }
+        pushToast("Level approved and added to the list.");
+        return;
+      }
       if(status==="Approved"){ logActivity(sub.playerName+" had \""+sub.name+"\" verified by a mod."); celebrate(); }
     }
     pushToast("Submission "+status.toLowerCase()+".");
@@ -2117,7 +2303,7 @@ function App(){
   }
   function computeUserPointsBase(username){
     const fromLevels = allListLevels().filter(l=> l.verified && (l.creator===username || l.verifier===username)).reduce((sum,l)=>sum+l.points,0);
-    const fromSubs = submissions.filter(s=>s.submittedBy===username && s.status==="Approved").reduce((sum,s)=> sum + (DIFF_POINTS[s.difficulty]||0), 0);
+    const fromSubs = submissions.filter(s=>s.submittedBy===username && s.status==="Approved" && s.kind!=="level").reduce((sum,s)=> sum + (DIFF_POINTS[s.difficulty]||0), 0);
     return fromLevels + fromSubs;
   }
   function computeUserPoints(username){
@@ -2144,12 +2330,22 @@ function App(){
     pushToast("Level renamed.");
   }
   function setLevelCover(scope, id, sublistId, url){
-    const clean = sanitizeText(url).slice(0,500);
+    const clean = sanitizeImageSrc(url);
     if(scope==="home") setLevelsHome(prev=>prev.map(l=>l.id===id?{...l,coverUrl:clean||undefined}:l));
     else if(scope==="fish") setLevelsFish(prev=>prev.map(l=>l.id===id?{...l,coverUrl:clean||undefined}:l));
     else if(scope==="other") setOtherSublists(prev=>prev.map(s=>s.id===sublistId?{...s,levels:s.levels.map(l=>l.id===id?{...l,coverUrl:clean||undefined}:l)}:s));
     logAudit((session||"Admin")+" updated a level's cover photo.");
     pushToast(clean ? "Cover photo updated." : "Cover photo removed.");
+  }
+  function setLevelDifficulty(scope, id, sublistId, diff){
+    const d = sanitizeText(String(diff||"")).slice(0,60);
+    if(!d.trim()) return;
+    const upd = (l)=> l.id===id ? { ...l, difficulty:d, points: DIFF_POINTS[d]!==undefined ? DIFF_POINTS[d] : l.points } : l;
+    if(scope==="home") setLevelsHome(prev=>prev.map(upd));
+    else if(scope==="fish") setLevelsFish(prev=>prev.map(upd));
+    else if(scope==="other") setOtherSublists(prev=>prev.map(sl=>sl.id===sublistId?{...sl,levels:sl.levels.map(upd)}:sl));
+    logAudit((session||"Admin")+" set a level's difficulty to "+d+".");
+    pushToast("Difficulty updated.");
   }
   function setLevelRank(scope, id, sublistId, newRank){
     if(scope==="home") setLevelsHome(prev=>prev.map(l=>l.id===id?{...l,rank:newRank}:l));
@@ -2324,7 +2520,7 @@ function App(){
     nameFor: (name)=> (users[name] && users[name].displayName) || name,
     onAdminSetPoints: adminSetPoints, onAdminSetCollabPoints: adminSetCollabPoints,
     onAdminRenameUser: adminRenameUser, onAdminBanWithReason: adminBanWithReason,
-    onDeleteLevel: deleteLevel, onDeleteCollab: deleteCollabAdmin, onDeleteUser: deleteUserAdmin, onSetLevelCover: setLevelCover, onSetLevelRank: setLevelRank,
+    onDeleteLevel: deleteLevel, onDeleteCollab: deleteCollabAdmin, onDeleteUser: deleteUserAdmin, onSetLevelCover: setLevelCover, onSetLevelRank: setLevelRank, onSetLevelDifficulty: setLevelDifficulty,
     onMarkCollabComplete: markCollabComplete, onRenameLevel: renameLevel, onRenameSubmission: renameSubmission,
     onDeleteDecoratedPost: deleteDecoratedPost, pushToast,
   };
