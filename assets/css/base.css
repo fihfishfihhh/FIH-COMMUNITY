@@ -71,3 +71,6 @@
   .count-pulse{ display:inline-block; animation: countPulse .4s ease; }
   
   .float-icon{ position:absolute; animation-name: floatDrift; animation-timing-function: ease-in-out; animation-iteration-count: infinite; color:var(--ink-faint); }
+
+/* Long unbroken words must wrap inside their container instead of pushing it wider. */
+main, .modal-pop{ overflow-wrap:anywhere; }
