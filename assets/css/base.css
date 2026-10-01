@@ -72,5 +72,7 @@
   
   .float-icon{ position:absolute; animation-name: floatDrift; animation-timing-function: ease-in-out; animation-iteration-count: infinite; color:var(--ink-faint); }
 
-/* Long unbroken words must wrap inside their container instead of pushing it wider. */
-main, .modal-pop{ overflow-wrap:anywhere; }
+/* Long unbroken runs of text (e.g. a pasted wall of text with no spaces) must wrap inside their
+   container instead of pushing it wider. Scoped to free-text content only — applying this
+   site-wide also breaks short labels mid-word inside flex children with a zero basis. */
+.break-anywhere{ overflow-wrap:anywhere; }
