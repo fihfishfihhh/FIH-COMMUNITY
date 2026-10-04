@@ -650,7 +650,7 @@ function CommentSection({ targetType, targetId, ctx }){
                   <button onClick={()=>onOpenProfile(c.author)} className="hover:underline">{nameFor(c.author)}</button>
                   <span className="font-normal" style={{ color:"var(--ink-faint)" }}>{timeAgo(c.ts)}</span>
                 </div>
-                <div className="text-sm" style={{ color:"var(--ink)" }}>{c.text}</div>
+                <div className="text-sm break-words break-anywhere" style={{ color:"var(--ink)" }}>{c.text}</div>
                 <div className="flex items-center gap-3 mt-1">
                   <button onClick={()=>session && onToggleLike(likeKey)} className="text-[11px] font-semibold flex items-center gap-1" style={{ color: likedByMe ? "var(--danger)" : "var(--ink-faint)" }}>
                     <IconHeart filled={likedByMe} size={12}/> {likeCount>0 ? likeCount : ""}
@@ -1239,7 +1239,7 @@ function CollabCard({ collab, session, ctx, onRequest, onDecide, onBan, onUnban,
         </div>
         <DifficultyBadge difficulty={collab.genre} />
       </div>
-      <p className="text-sm mt-3" style={{ color:"var(--ink-soft)" }}>{collab.description}</p>
+      <p className="text-sm mt-3 break-words break-anywhere" style={{ color:"var(--ink-soft)" }}>{collab.description}</p>
       <div className="flex items-center gap-2 mt-3 text-xs font-semibold" style={{ color:"var(--ink-faint)" }}>
         <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background:"var(--bg-soft)" }}>
           <div className="h-full prog-fill" style={{ width:(Math.min(100,(collab.filled/collab.slots)*100))+"%", background:"var(--accent)" }} />
@@ -1380,7 +1380,7 @@ function HelperPage({ session, helpRequests, addHelpRequest, query, ctx }){
             <div key={h.id} className="rounded-xl p-4 lift-hover stagger-item" style={{ background:"var(--bg-card)", border:"1px solid var(--line)", animationDelay:(i*0.05)+"s" }}>
               <span className="text-xs font-semibold px-2 py-1 rounded-md" style={{ background:"var(--accent-soft)", color:"var(--accent)" }}>{h.role}</span>
               <div className="font-display font-semibold mt-2">{h.levelName}</div>
-              <p className="text-sm mt-1" style={{ color:"var(--ink-soft)" }}>{h.description}</p>
+              <p className="text-sm mt-1 break-words break-anywhere" style={{ color:"var(--ink-soft)" }}>{h.description}</p>
               <button onClick={()=>ctx.onOpenProfile(h.postedBy)} className="flex items-center gap-2 mt-3 text-xs" style={{ color:"var(--ink-faint)" }}><Avatar name={h.postedBy} size={20} src={ctx.avatarSrc(h.postedBy)}/> posted by {ctx.nameFor(h.postedBy)}</button>
             </div>
           ))}
@@ -1499,11 +1499,11 @@ function EventsPage({ session, ctx, events, onCreateEvent, onJoinEvent, onSetWin
                       background: ev.category==="Admin" ? "var(--ink)" : ev.category==="Reward" ? "var(--warn-soft)" : "var(--accent-soft)",
                       color: ev.category==="Admin" ? "#fff" : ev.category==="Reward" ? "var(--warn)" : "var(--accent)"
                     }}>{ev.category} Event</span>
-                    <div className="font-display font-semibold mt-1.5 break-words">{ev.title}</div>
+                    <div className="font-display font-semibold mt-1.5 break-words break-anywhere">{ev.title}</div>
                   </div>
                   {ctx.isSuperAdmin && <button onClick={()=>onDeleteEvent(ev.id)} className="text-[11px] font-semibold shrink-0" style={{ color:"var(--danger)" }}>Delete</button>}
                 </div>
-                <p className="text-sm mt-2 break-words whitespace-pre-wrap" style={{ color:"var(--ink-soft)" }}>{ev.description}</p>
+                <p className="text-sm mt-2 break-words break-anywhere whitespace-pre-wrap" style={{ color:"var(--ink-soft)" }}>{ev.description}</p>
                 {ev.reward && <div className="text-[11px] font-semibold mt-2" style={{ color:"var(--accent)" }}>Reward: {ev.reward}{ev.rewardPoints>0?" ("+ev.rewardPoints+" pts)":""}</div>}
                 <div className="flex items-center justify-between mt-3 text-xs" style={{ color:"var(--ink-faint)" }}>
                   <span>Hosted by {ctx.nameFor(ev.host)}</span>
@@ -2044,7 +2044,7 @@ function BottomBar({ lang, setLang, session, bgId, setBgId, unlockedBgIds }){
 /* ---------------------------------- app ---------------------------------- */
 function App(){
   const [page, setPage] = useState("home");
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(()=> typeof window!=="undefined" && window.innerWidth < 768);
   const [query, setQuery] = useState("");
   const [searchType, setSearchType] = useState("Level");
   const [theme, setThemeState] = useState(()=>loadLS("fih_theme","light"));
@@ -2553,7 +2553,7 @@ function App(){
       {announcement && announcement.ts>dismissedTs && (
         <div className="banner-drop flex items-center gap-3 px-4 sm:px-6 py-2.5 text-sm font-medium shrink-0" style={{ background:"var(--ink)", color:"var(--bg)" }}>
           <IconMegaphone size={16} className="shrink-0"/>
-          <span className="flex-1">{announcement.text}</span>
+          <span className="flex-1 break-words break-anywhere">{announcement.text}</span>
           <button onClick={dismissAnnouncement} aria-label="Dismiss announcement"><IconX size={16}/></button>
         </div>
       )}
